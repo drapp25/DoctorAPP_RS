@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Activa tu Cuenta - DoctorApp</title>
+</head>
+
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; background-color: #e0f7fa;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%"
+        style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <!-- Header Banner -->
+        <tr>
+            <td align="center" style="padding: 40px 0; background-color: #004aad;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: bold; letter-spacing: 1px;">
+                    DoctorApp</h1>
+                <p style="margin: 10px 0 0; color: #e0f7fa; font-size: 14px; opacity: 0.9;">Red Social Médica
+                    Inteligente</p>
+            </td>
+        </tr>
+
+        <!-- Main Content -->
+        <tr>
+            <td style="padding: 50px 40px; text-align: center;">
+                <div
+                    style="background-color: #f0fbff; display: inline-block; padding: 15px; border-radius: 50%; margin-bottom: 25px;">
+                    <img src="https://img.icons8.com/fluency/96/ok.png" width="48" height="48" alt="Check Icon">
+                </div>
+                <h2 style="color: #0D47A1; font-size: 22px; margin-top: 0; margin-bottom: 15px;">¡Bienvenido a la
+                    comunidad!</h2>
+                <p style="color: #555; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+                    Hola, <strong>{{ user.first_name }}</strong>. Estamos muy felices de tenerte aquí. Para completar tu
+                    registro y asegurar tu identidad, solo falta un paso.
+                </p>
+
+                <a href="{{ protocol }}://{{ domain }}{% url 'activate' uidb64=uid token=token %}"
+                    style="display: inline-block; padding: 16px 40px; background-color: #004aad; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; transition: background-color 0.3s;">
+                    ✅ Activar mi cuenta ahora
+                </a>
+
+                <p
+                    style="color: #999; font-size: 13px; line-height: 1.5; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+                    Si no te registraste en DoctorApp, por favor ignora este correo.
+                </p>
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="padding: 30px 40px; background-color: #f8fdff; text-align: center;">
+                <p style="margin: 0; color: #0D47A1; font-size: 12px; font-weight: bold; opacity: 0.6;">
+                    &copy; {% now "Y" %} DoctorApp. Todos los derechos reservados.
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

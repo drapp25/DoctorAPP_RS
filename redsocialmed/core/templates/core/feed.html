@@ -1,0 +1,142 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Inicio{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/profile_custom.css' %}">
+<style>
+    .feed-wrapper {
+        flex: 3 !important;
+        max-width: 1000px !important;
+        margin: 0 auto !important;
+        padding: 20px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .feed-empty {
+        text-align: center;
+        color: #999;
+        margin-top: 60px;
+        padding: 40px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-buscar {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 25px;
+        background: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+    .btn-buscar:hover {
+        background: var(--primary-dark);
+    }
+
+    @media screen and (max-width: 768px) {
+        .feed-wrapper {
+            max-width: 600px !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+            padding: 15px 10px !important;
+        }
+
+        .feed-empty {
+            margin-top: 30px;
+            padding: 30px 20px;
+        }
+
+        .feed-empty h3 {
+            font-size: 1.2rem;
+        }
+
+        .feed-empty p {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feed-wrapper">
+
+    <div id="feed-posts-container">
+        {% if publicaciones %}
+        {% include 'core/includes/feed_posts.html' %}
+        {% else %}
+        <div class="feed-empty">
+            <i class="fas fa-users" style="font-size: 60px; color: #ddd; margin-bottom: 20px;"></i>
+            <h3>Tu feed está vacío</h3>
+            <p>Sigue a doctores y profesionales para ver sus actualizaciones aquí.</p>
+            <a href="{% url 'busqueda' %}" class="btn-buscar">Buscar profesionales</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="loading-spinner" style="text-align: center; display: none; padding: 20px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary-color);"></i>
+    </div>
+
+</div>
+
+{% if publicaciones.has_next %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let page = 1;
+        let empty_page = false;
+        let block_request = false;
+        const container = document.getElementById('feed-posts-container');
+        const spinner = document.getElementById('loading-spinner');
+
+        window.onscroll = function () {
+            if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 600)) {
+                if (empty_page === false && block_request === false) {
+                    block_request = true;
+                    page += 1;
+
+                    spinner.style.display = 'block';
+
+                    fetch(`?page=${page}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.text();
+                            }
+                            throw new Error('Network response was not ok');
+                        })
+                        .then(html => {
+                            if (html.trim() === '') {
+                                empty_page = true;
+                            } else {
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = html;
+                                container.insertAdjacentHTML('beforeend', html);
+                            }
+                            block_request = false;
+                            spinner.style.display = 'none';
+                        })
+                        .catch(error => {
+                            console.error('Error loading posts:', error);
+                            block_request = false;
+                            spinner.style.display = 'none';
+                            empty_page = true;
+                        });
+                }
+            }
+        };
+    });
+</script>
+{% endif %}
+{% endblock %}

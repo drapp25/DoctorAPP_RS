@@ -1,0 +1,385 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Análisis de Sangre IA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blood-analysis-container {
+        padding: 40px;
+        background: #f8f9fa;
+        min-height: 85vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .chat-interface {
+        width: 100%;
+        max-width: 900px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        height: 80vh;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        color: white;
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .bloody-avatar {
+        width: 50px;
+        height: 50px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d32f2f;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 30px;
+        background: #fafafa;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .message {
+        max-width: 85%;
+        padding: 15px 20px;
+        border-radius: 15px;
+        animation: fadeIn 0.3s ease;
+        line-height: 1.6;
+        position: relative;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .message.bot {
+        align-self: flex-start;
+        background: white;
+        border: 1px solid #eee;
+        border-top-left-radius: 4px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+
+    .message.user {
+        align-self: flex-end;
+        background: #e3f2fd;
+        color: #1565c0;
+        border-top-right-radius: 4px;
+    }
+
+    .message-content {
+        font-size: 0.95rem;
+    }
+
+    .message-content h1,
+    .message-content h2,
+    .message-content h3 {
+        margin-top: 15px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .message-content ul {
+        padding-left: 20px;
+        margin-bottom: 10px;
+    }
+
+    .message-content strong {
+        font-weight: 700;
+        color: #d32f2f;
+    }
+
+    .input-area {
+        padding: 20px;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .upload-btn {
+        background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+    }
+
+    .upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(211, 47, 47, 0.4);
+    }
+
+    .upload-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .status-indicator {
+        font-size: 0.9rem;
+        color: #666;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+    }
+
+    .typing-dots span {
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: #d32f2f;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out both;
+        margin: 0 2px;
+    }
+
+    .typing-dots span:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+
+    .typing-dots span:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes typing {
+
+        0%,
+        80%,
+        100% {
+            transform: scale(0);
+            opacity: 0.5;
+        }
+
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .download-btn {
+        margin-top: 15px;
+        display: inline-block;
+        padding: 8px 16px;
+        background: #f1f1f1;
+        color: #333;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid #ddd;
+        transition: all 0.2s;
+    }
+
+    .download-btn:hover {
+        background: #e0e0e0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="blood-analysis-container">
+    <div class="chat-interface">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="bloody-avatar">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div>
+                    <h2 style="margin: 0; font-size: 1.2rem;">Bloody - Analista Clínico</h2>
+                    <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">Especialista en exámenes de sangre</p>
+                </div>
+            </div>
+            <a href="{% url 'tools' %}" style="color: white; opacity: 0.8; transition: opacity 0.2s;">
+                <i class="fas fa-times"></i>
+            </a>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-content">
+                    Hola, soy <strong>Bloody</strong>, tu asistente especializado en hematología y química clínica. 🩸
+                    <br><br>
+                    Por favor, sube tu examen de sangre en formato <strong>PDF</strong> para que pueda realizar un
+                    análisis detallado, explicarte cada parámetro y buscar correlaciones clínicas importantes.
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="file" id="pdfUpload" accept=".pdf" style="display: none;" onchange="handleFileUpload(this)">
+
+            <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('pdfUpload').click()">
+                <i class="fas fa-file-upload"></i> Subir Examen PDF
+            </button>
+
+            <div class="status-indicator" id="statusIndicator" style="display: none;">
+                <div class="typing-dots">
+                    <span></span><span></span><span></span>
+                </div>
+                <span id="statusText">Procesando archivo...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    const UPLOAD_URL = "{% url 'proxy_upload_blood_test' %}";
+    const ANALYZE_URL = "{% url 'proxy_analyze_blood_test' %}";
+
+    async function handleFileUpload(input) {
+        if (input.files.length === 0) return;
+
+        const file = input.files[0];
+        if (file.type !== 'application/pdf') {
+            alert('Por favor selecciona un archivo PDF válido.');
+            return;
+        }
+
+        // Add user message
+        addMessage(`Archivo subido: <strong>${file.name}</strong>`, 'user');
+
+        // Show loading
+        const uploadBtn = document.getElementById('uploadBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        uploadBtn.disabled = true;
+        statusIndicator.style.display = 'flex';
+        statusText.textContent = "Subiendo documento seguro...";
+
+        try {
+            // 1. Upload Document
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const uploadHeaders = { 'X-CSRFToken': '{{ csrf_token }}' };
+
+            const uploadRes = await fetch(UPLOAD_URL, {
+                method: 'POST',
+                headers: uploadHeaders,
+                body: formData
+            });
+
+            if (!uploadRes.ok) throw new Error('Error en la subida del archivo');
+
+            const uploadData = await uploadRes.json();
+            const conversationId = uploadData.conversation_id;
+
+            // 2. Analyze Document
+            statusText.textContent = "Bloody está leyendo y analizando tu examen... (esto puede tomar unos segundos)";
+
+            // Artificial delay for realism if it's too fast, but real API will take time
+
+            const analyzeRes = await fetch(ANALYZE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    conversation_id: conversationId
+                })
+            });
+
+            if (!analyzeRes.ok) throw new Error('Error durante el análisis');
+
+            const analyzeData = await analyzeRes.json();
+
+            // Render Response
+            statusIndicator.style.display = 'none';
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-file-upload"></i> Subir otro examen';
+            input.value = ''; // Reset input
+
+            const replyText = analyzeData.reply || analyzeData.output || "Análisis completado.";
+            addBotResponse(replyText);
+
+        } catch (error) {
+            console.error(error);
+            statusIndicator.style.display = 'none';
+            uploadBtn.disabled = false;
+            addMessage("Lo siento, hubo un error procesando tu examen. Por favor intenta de nuevo.", 'bot');
+        }
+    }
+
+    function addMessage(htmlContent, type) {
+        const messagesDiv = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${type}`;
+        msgDiv.innerHTML = `<div class="message-content">${htmlContent}</div>`;
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function addBotResponse(markdownText) {
+        const messagesDiv = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message bot`;
+
+        // Convert Markdown to HTML
+        const htmlContent = marked.parse(markdownText);
+
+        // Create downloadable blob
+        const blob = new Blob([markdownText], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+
+        msgDiv.innerHTML = `
+            <div class="message-content">${htmlContent}</div>
+            <a href="${url}" download="analisis_bloody.md" class="download-btn">
+                <i class="fas fa-download"></i> Descargar Análisis
+            </a>
+        `;
+
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+</script>
+{% endblock %}

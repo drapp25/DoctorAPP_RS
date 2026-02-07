@@ -1,0 +1,272 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Perfil de {{ usuario_perfil.first_name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/profile_custom.css' %}?v=2">
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+
+  <div class="profile-card">
+    {% if usuario_perfil.es_profesional %}
+    <div class="profile-header-icon">
+      <i class="fas fa-stethoscope"></i>
+    </div>
+    {% endif %}
+
+    <div class="profile-image-container">
+      {% if usuario_perfil.foto_perfil %}
+      <img src="{{ usuario_perfil.foto_perfil.url }}" alt="Foto de perfil" class="profile-image">
+      {% else %}
+      <img src="{% static 'core/img/user_default.png' %}" alt="Foto de perfil" class="profile-image">
+      {% endif %}
+    </div>
+
+    <div style="padding: 0 20px 20px;">
+      <h2 class="profile-name" style="margin-bottom: 8px;">
+        {% if usuario_perfil.es_profesional %}{{ usuario_perfil.titulo_profesional|default:"Dr." }} {% endif %}
+        {{ usuario_perfil.first_name }} {{ usuario_perfil.last_name }}
+      </h2>
+
+      <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+
+        {% if usuario_perfil.es_profesional %}
+        <span
+          style="font-weight: 600; font-size: 1rem; background: linear-gradient(90deg, #00acc1 0%, #039be5 100%); padding: 6px 16px; border-radius: 20px; color: white;">
+          {{ usuario_perfil.especialidad }}
+        </span>
+        {% else %}
+        <span
+          style="font-weight: 600; background: linear-gradient(90deg, #00acc1 0%, #039be5 100%); padding: 6px 16px; border-radius: 20px; color: white;">
+          Paciente
+        </span>
+        {% endif %}
+
+        <div class="profile-location"
+          style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: #777;">
+          <i class="fas fa-map-marker-alt" style="color: var(--primary-color);"></i>
+          {% if usuario_perfil.ciudad_residencia %}
+          {{ usuario_perfil.ciudad_residencia }}
+          {% else %}
+          <span>Ubicación no especificada</span>
+          {% endif %}
+        </div>
+
+        {% if usuario_perfil.bio %}
+        <p class="profile-bio"
+          style="margin-top: 15px; font-size: 0.95rem; color: #555; line-height: 1.6; font-style: italic;">
+          "{{ usuario_perfil.bio }}"
+        </p>
+        {% else %}
+        <p class="profile-bio" style="margin-top: 15px; font-size: 0.9rem; color: #aaa; font-style: italic;">
+          Sin biografía.
+        </p>
+        {% endif %}
+
+
+        {% if usuario_perfil.es_profesional %}
+        <div
+          style="margin-top: 15px; width: 100%; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: center; gap: 20px;">
+          <div style="text-align: center;">
+            <span style="font-size: 1.2rem; font-weight: 700; color: #333; display: block;">
+              {{ publicaciones_count }}
+            </span>
+            <span style="font-size: 0.8rem; color: #777;">Publicaciones</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="action-bar" style="margin-bottom: 0;">
+      {% if es_propietario %}
+      <a href="{% url 'editar_perfil' %}" class="action-btn"><i class="fas fa-user-edit"></i> Editar</a>
+      {% elif usuario_perfil.es_profesional %}
+      <form method="post" action="{% url 'seguir_toggle' user_id=usuario_perfil.id %}" id="follow-form"
+        style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="action-btn">
+          {% if sigue %}
+          <i class="fas fa-user-minus"></i> Dejar de seguir
+          {% else %}
+          <i class="fas fa-user-plus"></i> Seguir
+          {% endif %}
+        </button>
+      </form>
+      {% else %}
+      <div style="padding: 10px 20px; color: #777; font-size: 0.9rem; text-align: center;">
+        <i class="fas fa-info-circle"></i> Perfil de paciente
+      </div>
+      {% endif %}
+
+
+    </div>
+
+
+  </div>
+
+  <div class="feed-container">
+
+    {% if es_propietario and usuario_perfil.es_profesional %}
+    <div class="create-post-card">
+      <form method="post" action="{% url 'crear_publicacion' %}" enctype="multipart/form-data" class="create-post-form">
+        {% csrf_token %}
+        <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+          <div style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; flex-shrink: 0;">
+            {% if request.user.foto_perfil %}
+            <img src="{{ request.user.foto_perfil.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+            {% else %}
+            <img
+              src="https://ui-avatars.com/api/?name={{ request.user.first_name }}+{{ request.user.last_name }}+{{ request.user.username }}&background=ccc&color=fff"
+              style="width: 100%; height: 100%; object-fit: cover;">
+            {% endif %}
+          </div>
+          <textarea name="contenido" rows="2" placeholder="Comparte una actualización, artículo o consejo de salud..."
+            required></textarea>
+        </div>
+
+        <div class="post-actions">
+          <div class="file-input-wrapper">
+            <label for="file-upload"
+              style="cursor: pointer; color: var(--primary-color); font-weight: 500; display: flex; align-items: center; gap: 5px;">
+              <i class="fas fa-photo-video"></i> Agregar Multimedia (Foto/Video)
+            </label>
+            <input id="file-upload" type="file" name="archivo" accept="image/*,video/*" style="display: none;"
+              onchange="validateFile(this)">
+            <span id="file-name" style="margin-left: 10px; font-size: 0.8rem; color: #666;"></span>
+          </div>
+
+          <button type="submit" class="btn-post">
+            Publicar
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      function validateFile(input) {
+        const file = input.files[0];
+        const nameSpan = document.getElementById('file-name');
+
+        if (!file) {
+          nameSpan.textContent = "";
+          return;
+        }
+
+        const maxVideoSize = 287 * 1024 * 1024;
+        const maxImageSize = 30 * 1024 * 1024;
+
+        if (file.type.startsWith('video/')) {
+          if (file.size > maxVideoSize) {
+            alert('El video excede el tamaño máximo permitido de 287 MB.');
+            input.value = "";
+            nameSpan.textContent = "";
+            return;
+          }
+
+          const video = document.createElement('video');
+          video.preload = 'metadata';
+          video.onloadedmetadata = function () {
+            window.URL.revokeObjectURL(video.src);
+            if (video.duration > 180.5) {
+              alert('El video excede la duración máxima de 3 minutos.');
+              input.value = "";
+              nameSpan.textContent = "";
+            } else {
+              nameSpan.textContent = file.name;
+            }
+          }
+          video.onerror = function () {
+            nameSpan.textContent = file.name;
+          };
+          video.src = URL.createObjectURL(file);
+
+        } else if (file.type.startsWith('image/')) {
+          if (file.size > maxImageSize) {
+            alert('La imagen excede el tamaño máximo permitido de 30 MB.');
+            input.value = "";
+            nameSpan.textContent = "";
+            return;
+          }
+          nameSpan.textContent = file.name;
+        } else {
+          nameSpan.textContent = file.name;
+        }
+      }
+    </script>
+    {% endif %}
+
+    <div id="profile-posts-container">
+      {% if publicaciones %}
+      {% include 'core/includes/profile_posts_list.html' %}
+      {% else %}
+      {% if usuario_perfil.es_profesional %}
+      <div style="text-align: center; color: #999; margin-top: 40px; padding: 20px;">
+        <i class="fas fa-pen-fancy" style="font-size: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
+        <p>No hay publicaciones aún.</p>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <div id="loading-spinner" style="text-align: center; display: none; padding: 20px;">
+      <i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary-color);"></i>
+    </div>
+
+    {% if publicaciones.has_next %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        let page = 1;
+        let empty_page = false;
+        let block_request = false;
+        const container = document.getElementById('profile-posts-container');
+        const spinner = document.getElementById('loading-spinner');
+
+        window.onscroll = function () {
+          if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 600)) {
+            if (empty_page === false && block_request === false) {
+              block_request = true;
+              page += 1;
+
+              spinner.style.display = 'block';
+
+              fetch(`?page=${page}`, {
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
+                }
+              })
+                .then(response => {
+                  if (response.ok) {
+                    return response.text();
+                  }
+                  throw new Error('Network response was not ok');
+                })
+                .then(html => {
+                  if (html.trim() === '') {
+                    empty_page = true;
+                  } else {
+                    container.insertAdjacentHTML('beforeend', html);
+                  }
+                  block_request = false;
+                  spinner.style.display = 'none';
+                })
+                .catch(error => {
+                  console.error('Error loading posts:', error);
+                  block_request = false;
+                  spinner.style.display = 'none';
+                  empty_page = true;
+                });
+            }
+          }
+        };
+      });
+    </script>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

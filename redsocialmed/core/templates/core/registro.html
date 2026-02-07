@@ -1,0 +1,428 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>DoctorApp | Registro</title>
+  <link rel="icon" href="{% static 'core/img/logo.ico' %}" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'core/css/registro.css' %}?v=2">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    .password-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-container input {
+      width: 100%;
+      padding-right: 40px;
+      box-sizing: border-box;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #999;
+      z-index: 10;
+    }
+
+    .toggle-password:hover {
+      color: #00bcd4;
+    }
+
+    .alert-msg {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-info {
+      background-color: #cce5ff;
+      color: #004085;
+      border: 1px solid #b8daff;
+    }
+  </style>
+</head>
+
+
+
+<body>
+  <div class="registro-container">
+
+    <img src="{% static 'core/img/fondolog.png' %}" alt="Fondo" class="background" />
+
+    <div class="logo-superior">
+      <img src="{% static 'core/img/letraDA.png' %}" alt="Logo DA" />
+    </div>
+
+
+    <div class="form-box">
+      <div class="top-tabs">
+        <a href="{% url 'registro' %}" class="tab active">REGISTRO</a>
+        <img src="{% static 'core/img/logo.ico' %}" alt="Logo" class="logo" />
+        <a href="{% url 'login' %}" class="tab">LOGIN</a>
+      </div>
+
+      <form method="post" id="formRegistro">
+        {% csrf_token %}
+        <h2>Registro</h2>
+
+        {% if messages %}
+        {% for message in messages %}
+        <div
+          class="alert-msg {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="input-group">
+          <input type="text" name="nombres" placeholder="Nombres" required>
+          <input type="text" name="apellidos" placeholder="Apellidos" required>
+        </div>
+
+        <div class="input-group">
+          <input type="email" name="email" placeholder="Email" required>
+        </div>
+
+        <div class="input-group">
+          <input type="text" name="ciudad" placeholder="Ciudad de Residencia" required list="ciudades-list">
+          <datalist id="ciudades-list">
+            <option value="Bogotá">
+            <option value="Medellín">
+            <option value="Cali">
+            <option value="Barranquilla">
+            <option value="Cartagena">
+            <option value="Cúcuta">
+            <option value="Soledad">
+            <option value="Ibagué">
+            <option value="Bucaramanga">
+            <option value="Soacha">
+            <option value="Santa Marta">
+            <option value="Villavicencio">
+            <option value="Bello">
+            <option value="Valledupar">
+            <option value="Pereira">
+            <option value="Buenaventura">
+            <option value="Pasto">
+            <option value="Manizales">
+            <option value="Montería">
+            <option value="Neiva">
+            <option value="Palmira">
+            <option value="Riohacha">
+            <option value="Sincelejo">
+            <option value="Popayán">
+            <option value="Tunja">
+            <option value="Armenia">
+            <option value="Florencia">
+            <option value="Yopal">
+            <option value="Quibdó">
+          </datalist>
+        </div>
+
+        <div class="input-group">
+          <div class="password-container">
+            <input type="password" name="password1" id="password" placeholder="Contraseña" required>
+            <i class="fas fa-eye toggle-password" onclick="togglePassword('password', this)"></i>
+          </div>
+        </div>
+        <div class="input-group">
+          <div class="password-container">
+            <input type="password" name="password2" id="confirm_password" placeholder="Confirmar Contraseña" required>
+            <i class="fas fa-eye toggle-password" onclick="togglePassword('confirm_password', this)"></i>
+          </div>
+        </div>
+
+        <label>
+          <input type="checkbox" id="esMedico" name="esMedico" value="on"> Soy Profesional médico
+        </label>
+
+        <div id="camposMedico" style="display: none;">
+          <div class="input-group" style="display: flex; gap: 10px;">
+            <select name="doc_type" id="doc_type"
+              style="width: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;">
+              <option value="CC">CC</option>
+              <option value="CE">CE</option>
+              <option value="TI">TI</option>
+            </select>
+            <input type="text" name="matricula" id="matricula" placeholder="Identificación ReTHUS" style="flex: 1;">
+          </div>
+          <div id="rethus-status"
+            style="font-size: 0.8rem; margin-top: -5px; margin-bottom: 10px; margin-left: 5px; height: 15px;"></div>
+          <div style="text-align: right; margin-top: -12px; margin-bottom: 10px; font-size: 0.8rem;">
+            <a href="https://web.sispro.gov.co/THS/Cliente/ConsultasPublicas/ConsultaPublicaDeTHxIdentificacion.aspx"
+              target="_blank" style="color: #00bcd4; text-decoration: none; font-weight: 500;">
+              <i class="fas fa-external-link-alt"></i> Consultar en ReTHUS
+            </a>
+          </div>
+          <div class="input-group"><input type="text" name="especialidad" placeholder="Especialidad médica"
+              list="especialidades-list"></div>
+          <datalist id="especialidades-list">
+            <option value="Medicina General">
+            <option value="Alergología">
+            <option value="Anestesiología y reanimación">
+            <option value="Cardiología">
+            <option value="Cardiología pediátrica">
+            <option value="Cardiología intervencionista y hemodinamia">
+            <option value="Cirugía cardiovascular">
+            <option value="Cirugía de cabeza y cuello">
+            <option value="Cirugía de mano">
+            <option value="Cirugía de tórax">
+            <option value="Cirugía de trasplantes">
+            <option value="Cirugía de trasplantes de órganos abdominales">
+            <option value="Cirugía general">
+            <option value="Cirugía pediátrica">
+            <option value="Cirugía oncológica">
+            <option value="Cirugía plástica: reconstructiva y estética">
+            <option value="Cirugía vascular periférica">
+            <option value="Coloproctología">
+            <option value="Dermatología">
+            <option value="Electrofisiología cardíaca">
+            <option value="Endocrinología">
+            <option value="Endocrinología pediátrica">
+            <option value="Gastroenterología">
+            <option value="Gastroenterología pediátrica">
+            <option value="Genética médica">
+            <option value="Geriatría">
+            <option value="Ginecología y obstetricia">
+            <option value="Hematología">
+            <option value="Oncología clínica">
+            <option value="Hepatología">
+            <option value="Infectología">
+            <option value="Infectología pediátrica">
+            <option value="Medicina del dolor y cuidados paliativos">
+            <option value="Hemato-oncología pediátrica">
+            <option value="Medicina crítica y cuidado intensivo">
+            <option value="Medicina crítica y cuidado intensivo pediátrico">
+            <option value="Medicina del deporte y de la actividad física">
+            <option value="Medicina de urgencias">
+            <option value="Medicina familiar">
+            <option value="Medicina física y rehabilitación">
+            <option value="Medicina forense">
+            <option value="Medicina interna">
+            <option value="Medicina maternofetal">
+            <option value="Medicina aeroespacial">
+            <option value="Medicina nuclear">
+            <option value="Nefrología">
+            <option value="Nefrología pediátrica">
+            <option value="Neumología">
+            <option value="Neumología pediátrica">
+            <option value="Neurocirugía">
+            <option value="Neurología">
+            <option value="Neurología pediátrica">
+            <option value="Oftalmología">
+            <option value="Ortopedia y traumatología pediátrica">
+            <option value="Ortopedia y traumatología">
+            <option value="Otología">
+            <option value="Otorrinolaringología">
+            <option value="Otorrinolaringología pediátrica">
+            <option value="Patología">
+            <option value="Pediatría">
+            <option value="Psiquiatría">
+            <option value="Psiquiatría de enlace">
+            <option value="Psiquiatría de niños y adolescentes">
+            <option value="Radiología">
+            <option value="Radiología e imágenes diagnósticas">
+            <option value="Radiología intervencionista">
+            <option value="Radioterapia">
+            <option value="Sexología clínica">
+            <option value="Reumatología">
+            <option value="Reumatología pediátrica">
+            <option value="Toxicología clínica">
+            <option value="Urología">
+            <option value="Urología Pediátrica">
+            <option value="Medicina Homeopática">
+            <option value="Medicina Ayurveda">
+            <option value="Medicina Neuralterapéutica">
+            <option value="Medicina Osteopática">
+            <option value="Medicina tradicional china">
+          </datalist>
+        </div>
+
+        <label style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <span>
+            <input type="checkbox" id="terminos"> Acepto términos y condiciones
+          </span>
+          <a href="#" id="toggleTerminos" style="font-size: 0.8rem; color: #00bcd4; text-decoration: underline;">Leer
+            términos</a>
+        </label>
+
+        <div id="terminosTexto"
+          style="display: none; background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.75rem; color: #555; height: 150px; overflow-y: scroll; margin-bottom: 20px; text-align: left; line-height: 1.5;">
+          <h4 style="margin-top: 0; color: #333;">Términos y Condiciones de Uso - DoctorApp</h4>
+          <p><strong>1. Objeto y Alcance:</strong> DoctorApp es una red social especializada en el ámbito de la salud.
+            Su
+            objetivo es conectar profesionales médicos y pacientes. El contenido médico es responsabilidad exclusiva de
+            los profesionales de la salud debidamente verificados.</p>
+
+          <p><strong>2. Protección de Datos Personales (Habeas Data):</strong> En cumplimiento de la Ley 1581 de 2012 y
+            el
+            Decreto 1377 de 2013 de la República de Colombia, DoctorApp informa que solo recopila datos básicos de
+            autenticación (correo, nombre, ciudad) y, en el caso de médicos, datos profesionales públicos (matrícula,
+            especialidad). No se almacena información sensible de historias clínicas, diagnósticos detallados ni datos
+            privados de pacientes en nuestros servidores.</p>
+
+          <p><strong>3. Responsabilidad del Contenido:</strong>
+          <ul>
+            <li>Los usuarios Profesionales son responsables de la veracidad de su información médica.</li>
+            <li>Las opiniones expresadas en publicaciones son responsabilidad exclusiva de sus autores.</li>
+            <li>DoctorApp actúa como intermediario tecnológico y no reemplaza la consulta médica presencial.</li>
+          </ul>
+          </p>
+
+          <p><strong>4. Código de Conducta:</strong> Queda estrictamente prohibido:
+          <ul>
+            <li>Publicar contenido ofensivo, racista, discriminatorio o violento.</li>
+            <li>Difundir información falsa (Fake News) relacionada con la salud pública.</li>
+            <li>El acoso o maltrato a otros miembros de la comunidad.</li>
+          </ul>
+          El incumplimiento de estas normas resultará en la <strong>suspensión inmediata y permanente</strong> de la
+          cuenta.
+          </p>
+
+          <p><strong>5. Aceptación:</strong> Al registrarse, usted declara haber leído y aceptado estos términos, y
+            autoriza el tratamiento de sus datos básicos para el funcionamiento de la plataforma.</p>
+          <p><strong>6. Validación ReTHUS:</strong> Si usted se registra como profesional médico y la validación
+            automática en ReTHUS no es exitosa en el momento del registro, es su estricta responsabilidad realizar dicha
+            validación posteriormente. DoctorApp se reserva el derecho de considerar el perfil como no verificado y
+            podrá <strong>eliminar la cuenta y toda la información compartida</strong> si se detecta falsedad en la
+            información profesional o si no se completa la validación requerida.</p>
+        </div>
+
+        <button type="submit" class="register-button">Registrar</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword(fieldId, icon) {
+      const field = document.getElementById(fieldId);
+      if (field.type === "password") {
+        field.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+      } else {
+        field.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+      }
+    }
+
+    const esMedicoCheckbox = document.getElementById('esMedico');
+    const camposMedico = document.getElementById('camposMedico');
+
+    esMedicoCheckbox.addEventListener('change', function () {
+      if (this.checked) {
+        camposMedico.style.display = 'block';
+      } else {
+        camposMedico.style.display = 'none';
+      }
+    });
+
+    $(document).ready(function () {
+      $('#matricula').on('blur', function () {
+        var docNum = $(this).val();
+        var docType = $('#doc_type').val();
+        var statusDiv = $('#rethus-status');
+
+        if (docNum.length > 5) {
+          statusDiv.html('<span style="color: gray;"><i class="fas fa-spinner fa-spin"></i> Verificando en ReTHUS...</span>');
+
+          $.ajax({
+            url: '{% url "validate_rethus" %}',
+            data: {
+              'type': docType,
+              'num': docNum
+            },
+            dataType: 'json',
+            success: function (data) {
+              if (data.valid) {
+                statusDiv.html('<span style="color: green;"><i class="fas fa-check-circle"></i> Validado en ReTHUS</span>');
+              } else if (data.local_exists) {
+                statusDiv.html('<div style="background-color: #fff; color: #dc3545; padding: 12px; border-radius: 5px; border: 1px solid #dc3545; font-size: 0.85rem; margin-top: 5px; position: absolute; z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: 85%;"><i class="fas fa-user-times"></i> <strong>Usuario ya registrado.</strong><br>Esta identificación ya está asociada a una cuenta en DoctorApp.</div>');
+                setTimeout(function () {
+                  statusDiv.fadeOut(500, function () {
+                    $(this).html('').show();
+                  });
+                }, 5000);
+              } else {
+                statusDiv.html('<div style="background-color: #fff; color: #d9534f; padding: 12px; border-radius: 5px; border: 1px solid #d9534f; font-size: 0.85rem; margin-top: 5px; position: absolute; z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.2); width: 85%;"><i class="fas fa-exclamation-triangle"></i> <strong>No encontrado o Inactivo.</strong><br>La validación deberá hacerse posteriormente para evitar pérdida de publicaciones y datos.</div>');
+                setTimeout(function () {
+                  statusDiv.fadeOut(500, function () {
+                    $(this).html('').show();
+                  });
+                }, 5000);
+              }
+            },
+            error: function () {
+              statusDiv.html('<span style="color: orange;"><i class="fas fa-exclamation-triangle"></i> Error de conexión</span>');
+            }
+          });
+        } else {
+          statusDiv.html('');
+        }
+      });
+    });
+
+    $('#toggleTerminos').on('click', function (e) {
+      e.preventDefault();
+      $('#terminosTexto').slideToggle();
+    });
+
+    $('#formRegistro').on('submit', function (e) {
+      if (!$('#terminos').is(':checked')) {
+        alert("Debe aceptar los términos y condiciones.");
+        e.preventDefault();
+        return;
+      }
+
+      const pass1 = $('input[name="password1"]').val();
+      const pass2 = $('input[name="password2"]').val();
+      const email = $('input[name="email"]').val().toLowerCase();
+
+      const bannedDomains = [
+        'yopmail.com', 'mailinator.com', 'guerrillamail.com', 'temp-mail.org',
+        'trashmail.com', 'mail7.io', 'dispostable.com', 'throwawaymail.com',
+        'getnada.com', '10minutemail.com', '0box.eu', 'my10minutemail.com',
+        'maildrop.cc', 'tempmail.com', 'guerrillamail.net'
+      ];
+
+      const emailDomain = email.split('@')[1];
+      if (bannedDomains.includes(emailDomain)) {
+        alert("No se permiten correos temporales. Por favor utiliza un email personal o corporativo válido.");
+        e.preventDefault();
+        return;
+      }
+
+      if (pass1 !== pass2) {
+        alert("Las contraseñas no coinciden.");
+        e.preventDefault();
+      } else if (pass1.length < 8 || !/\d/.test(pass1) || !/[A-Z]/.test(pass1)) {
+        alert("La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.");
+        e.preventDefault();
+      }
+    });
+  </script>
+</body>
+
+</html>

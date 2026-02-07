@@ -1,0 +1,2332 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}DoctorApp{% endblock %}</title>
+    <link rel="icon" href="{% static 'core/img/logo.ico' %}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    {% block extra_css %}{% endblock %}
+
+    <style>
+        html {
+            font-size: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        @media screen and (max-width: 1024px) {
+            html {
+                font-size: 96%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            html {
+                font-size: 94%;
+            }
+
+            body {
+                line-height: 1.5;
+            }
+
+            .usuario {
+                display: none !important;
+            }
+
+            .toggle-sidebar {
+                display: block !important;
+            }
+
+            nav a {
+                margin: 0 3px !important;
+            }
+
+            .sidebar-close-btn {
+                display: flex !important;
+            }
+
+            .sidebar {
+                width: 250px;
+                padding: 15px;
+            }
+
+            .sidebar h4 {
+                font-size: 0.8rem;
+                margin-bottom: 8px;
+            }
+
+            .sidebar ul li {
+                margin-bottom: 10px;
+            }
+
+            /* Sección Apoyan Móvil */
+            .sidebar img[title="Presidencia de la República"],
+            .sidebar img[title="Fondo Emprender"],
+            .sidebar img[title="SENA"] {
+                height: 35px !important;
+            }
+
+            .sidebar div[style*="margin-top: 20px"] {
+                margin-top: 10px !important;
+                padding: 10px 0 !important;
+            }
+
+            .sidebar .social {
+                margin-top: 10px;
+            }
+
+            .notifications-section {
+                display: none !important;
+            }
+
+            /* Aumentar tamaño de iconos del nav en móvil - balance perfecto */
+            .top-bar nav a i,
+            header nav a i {
+                font-size: 1.05rem !important;
+            }
+
+            /* Mantener buena separación entre iconos en móvil */
+            nav a {
+                margin: 0 6px !important;
+            }
+
+            /* Alinear el toggle-sidebar con los demás iconos */
+            .toggle-sidebar {
+                position: static !important;
+                margin-left: 10px !important;
+                font-size: 20px !important;
+            }
+
+            /* Ocultar icono del logo en móvil, dejar solo el texto */
+            .logo-link img {
+                display: none !important;
+            }
+
+            /* Reducir tamaño del texto del logo en móvil */
+            .logo {
+                font-size: 18px !important;
+            }
+
+            /* Ocultar el icono de home en móvil (ya que el logo sirve como home) */
+            nav a[href*="feed"] i.fa-home {
+                display: none !important;
+            }
+
+            nav a[href*="feed"] {
+                display: none !important;
+            }
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        nav a:hover,
+        nav a:hover i,
+        nav a:hover span {
+            color: #02c999 !important;
+        }
+
+        .sidebar-close-btn {
+            display: none;
+        }
+
+        /* MEDIA MODAL STYLES (Global) */
+        .media-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.95);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .media-modal-content {
+            margin: auto;
+            display: block;
+            max-width: 95%;
+            max-height: 95vh;
+            object-fit: contain;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            animation: zoomIn 0.3s;
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .media-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10001;
+            transition: color 0.2s;
+        }
+
+        .media-modal-close:hover {
+            color: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="top-bar" style="display: flex; align-items: center; justify-content: space-between;">
+
+        <a href="{% url 'feed' %}" class="logo-link"
+            style="text-decoration: none; display: flex; align-items: center; gap: 5px; flex-shrink: 0;">
+            <img src="{% static 'core/img/logo.ico' %}" alt="Logo" style="width: 30px; height: 30px;">
+            <div class="logo">Doctor<span>App</span></div>
+        </a>
+
+        <nav style="flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+            <a href="{% url 'feed' %}"><i class="fas fa-home"></i> </a>
+            <a href="{% url 'busqueda' %}"><i class="fas fa-search"></i> </a>
+            <a href="{% url 'tools' %}"><i class="fas fa-robot"></i></a>
+            <a href="{% url 'perfil' request.user.id %}"><i class="fas fa-user"></i> </a>
+            <a href="{% url 'siguiendo' %}"><i class="fas fa-user-friends"></i> </a>
+
+            {% if request.user.es_profesional %}
+            {% endif %}
+        </nav>
+
+        <div style="display: flex; align-items: center; justify-content: flex-end; flex-shrink: 0;">
+            <div class="usuario">
+                {{ request.user.first_name }} {{ request.user.last_name }}
+            </div>
+
+            <div class="toggle-sidebar" onclick="toggleSidebar()" style="margin-left: 5px; cursor: pointer;">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        {% block content %}
+        {% endblock %}
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-close-btn" style="justify-content: flex-start; margin-bottom: 15px; padding-top: 5px;">
+                <button onclick="toggleSidebar()"
+                    style="width: 32px; height: 32px; border-radius: 50%; background-color: #e0f7fa; color: #00bcd4; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05);"
+                    onmouseover="this.style.backgroundColor='#00bcd4'; this.style.color='white'; this.style.transform='rotate(90deg)';"
+                    onmouseout="this.style.backgroundColor='#e0f7fa'; this.style.color='#00bcd4'; this.style.transform='rotate(0deg)';"
+                    aria-label="Cerrar menú">
+                    <i class="fas fa-times" style="font-size: 1rem;"></i>
+                </button>
+            </div>
+            <form method="post" action="{% url 'logout' %}" style="margin-bottom: 20px;">
+                {% csrf_token %}
+                <button type="submit"
+                    style="width: 100%; padding: 10px; background-color: #ff6b6b; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s;">
+                    <i class="fas fa-sign-out-alt"></i> Salir del consultorio
+                </button>
+            </form>
+
+            {% block sidebar_top %}
+
+            <section class="notifications-section">
+                <h4>NOTIFICACIONES</h4>
+                <ul style="list-style: none; padding: 0;">
+                    {% if recent_notifications %}
+                    {% for notif in recent_notifications %}
+                    <li style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+                        <a href="{% url 'perfil' notif.autor.id %}"
+                            style="text-decoration: none; font-weight: bold; font-size: 0.9rem; color: #333; display: flex; align-items: center; gap: 8px;">
+                            {% if notif.autor.foto_perfil %}
+                            <img src="{{ notif.autor.foto_perfil.url }}"
+                                style="width: 25px; height: 25px; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                            <i class="fas fa-user-circle" style="color: #ccc; font-size: 25px;"></i>
+                            {% endif %}
+                            <span>{{ notif.autor.first_name }} {{ notif.autor.last_name }}</span>
+                        </a>
+
+                        <div
+                            style="font-size: 0.8rem; color: var(--primary-color); margin: 4px 0 4px 33px; font-weight: 500;">
+                            {% if notif.autor.es_profesional %}
+                            {{ notif.autor.especialidad }}
+                            {% else %}
+                            Paciente
+                            {% endif %}
+                        </div>
+
+                        <a href="{% url 'detalle_publicacion' notif.id %}"
+                            style="display: block; text-decoration: none; color: #666; font-size: 0.85rem; margin-left: 33px; line-height: 1.4;">
+                            {{ notif.contenido|truncatechars:40 }}
+                            <span style="color: #999; font-size: 0.75rem; display: block; margin-top: 3px;">
+                                {{ notif.creado|timesince }}
+                            </span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                    {% else %}
+                    <li style="color: #999; font-size: 0.9rem; font-style: italic; padding: 10px;">
+                        No hay novedades recientes.
+                    </li>
+                    {% endif %}
+                </ul>
+            </section>
+            <section>
+                <h4>DESTACADOS</h4>
+                <div
+                    style="background: linear-gradient(135deg, #2193b0 0%, #6dd5ed 100%); padding: 15px; border-radius: 15px; text-align: center; color: white; margin-top: 10px; box-shadow: 0 4px 15px rgba(33, 147, 176, 0.3);">
+                    <i class="fas fa-robot"
+                        style="font-size: 2.5rem; margin-bottom: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);"></i>
+                    <h5 style="margin: 0 0 8px 0; font-weight: 700;">Innovación IA</h5>
+                    <p style="font-size: 0.85rem; margin-bottom: 15px; line-height: 1.4;">
+                        Prueba nuestras herramientas de Inteligencia Artificial para apoyo médico.
+                    </p>
+                    <a href="{% url 'tools' %}"
+                        style="background: white; color: #2193b0; padding: 8px 16px; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                        Explorar <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </section>
+            {% endblock %}
+
+            <!-- Sección Apoyan -->
+            <div style="margin-top: 20px; padding: 15px 0; border-top: 1px solid #f0f0f0;">
+                <h5
+                    style="color: #888; font-size: 0.8rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; text-align: center; letter-spacing: 0.5px;">
+                    Apoyan:</h5>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                    <img src="{% static 'core/img/LogoPresidencia.png' %}"
+                        style="height: 45px; width: auto; object-fit: contain; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+                        title="Presidencia de la República">
+                    <img src="{% static 'core/img/LogoFondo.jpeg' %}"
+                        style="height: 45px; width: auto; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+                        title="Fondo Emprender">
+                    <img src="{% static 'core/img/LogoSena.jpg' %}"
+                        style="height: 45px; width: auto; object-fit: contain; mix-blend-mode: multiply; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'"
+                        title="SENA">
+                </div>
+            </div>
+
+            <div class="social" style="margin-top: 20px; padding-bottom: 20px;">
+                <h5
+                    style="color: #888; font-size: 0.8rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; text-align: center; letter-spacing: 0.5px;">
+                    SÍGUENOS:</h5>
+                <div style="display: flex; justify-content: center; gap: 20px;">
+                    <a href="https://www.instagram.com/doctorapp.col/" target="_blank"
+                        style="text-decoration: none; color: #E1306C; font-size: 1.8rem; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                        title="Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.facebook.com/share/1AVqRqivyY/" target="_blank"
+                        style="text-decoration: none; color: #1877F2; font-size: 1.8rem; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                        title="Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/company/doctor-app-col/" target="_blank"
+                        style="text-decoration: none; color: #0077B5; font-size: 1.8rem; transition: transform 0.2s;"
+                        onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'"
+                        title="LinkedIn">
+                        <i class="fab fa-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+
+
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        document.addEventListener('contextmenu', function (e) {
+            if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', function (e) {
+            if (e.key === 'PrintScreen') {
+                alert('La captura de pantalla no está permitida por privacidad.');
+            }
+        });
+
+        document.addEventListener('dragstart', function (e) {
+            if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+                e.preventDefault();
+            }
+        });
+    </script>
+
+    <div id="chatWidget" class="chat-widget">
+        <div class="chat-widget-header">
+            <div class="chat-widget-header-left">
+                <i class="fas fa-robot"></i>
+                <span>VITA - Asistente IA</span>
+            </div>
+            <div class="chat-widget-actions">
+                <button onclick="minimizeChat()" class="chat-widget-btn" title="Minimizar">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button onclick="closeChat()" class="chat-widget-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-widget-messages" id="chatWidgetMessages">
+            <div class="welcome-message-widget">
+                <i class="fas fa-comment-medical"></i>
+                <h4>¡Hola! Soy VITA</h4>
+                <p>Tu asistente médico virtual</p>
+            </div>
+
+            <div class="typing-indicator-widget" id="typingIndicatorWidget">
+                <div class="typing-dots-widget">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-widget-input">
+            <div style="display: flex; justify-content: space-between; padding: 0 5px;">
+                <div id="inputCounter" style="font-size: 0.7rem; color: #999; margin-bottom: 5px;">Inputs: ...</div>
+                <div id="charCounter"
+                    style="font-size: 0.7rem; color: #999; text-align: right; margin-bottom: 5px; opacity: 0; transition: opacity 0.2s;">
+                    0/800</div>
+            </div>
+            <form id="chatWidgetForm" onsubmit="sendChatMessage(event)">
+                <input type="text" id="chatWidgetInput" placeholder="Escribe tu pregunta..." autocomplete="off"
+                    maxlength="800" oninput="updateCharCount(this)">
+                <button type="submit" id="chatWidgetSendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Blood Test Widget -->
+    <div id="bloodTestWidget" class="chat-widget" style="width: 450px; border-left: 5px solid #d32f2f;">
+        <div class="chat-widget-header" style="background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);">
+            <div class="chat-widget-header-left">
+                <i class="fas fa-tint"></i>
+                <span>Rojito - Analista de Examenes de sangre</span>
+                <span id="rojitoDailyCount"
+                    style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; margin-left: auto; border: 1px solid rgba(255,255,255,0.3); font-weight: bold; margin-right: 5px;"
+                    title="Usos hoy / Límite diario">0/3</span>
+                <span id="rojitoLifetimeCount"
+                    style="display: none; font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3); font-weight: bold;"
+                    title="Análisis realizados con éxito">#0</span>
+            </div>
+            <div class="chat-widget-actions">
+                <button onclick="minimizeBloodTest()" class="chat-widget-btn" title="Minimizar">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <button id="btnCloseRojito" onclick="closeBloodTest()" class="chat-widget-btn" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA FUNCIONAL: ROJITO (Visible por defecto) -->
+        <!-- Scroll Navigation Buttons (Moved Above Functional Area) -->
+        <div
+            style="position: absolute; right: 15px; top: 100px; display: flex; flex-direction: column; gap: 8px; z-index: 50; opacity: 0.8;">
+            <button onclick="document.getElementById('bloodWidgetMessages').scrollTo({top: 0, behavior: 'smooth'})"
+                title="Ir al inicio"
+                style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ffcdd2; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #d32f2f; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                <i class="fas fa-arrow-up"></i>
+            </button>
+            <button
+                onclick="const el = document.getElementById('bloodWidgetMessages'); el.scrollTo({top: el.scrollHeight, behavior: 'smooth'});"
+                title="Ir al final"
+                style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ffcdd2; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #d32f2f; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                <i class="fas fa-arrow-down"></i>
+            </button>
+        </div>
+
+        <div id="rojitoFunctionalArea"
+            style="display: flex; height: 100%; flex-direction: column; overflow: hidden; background: white; position: relative;">
+
+            <!-- Overlay de Confirmación (Full Screen) -->
+            <div id="bloodFileConfirmBox"
+                style="display: none; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 200; background: rgba(255, 255, 255, 0.98); padding: 20px; box-sizing: border-box; flex-direction: column; justify-content: center; align-items: center;">
+            </div>
+
+            <div class="chat-widget-messages" id="bloodWidgetMessages"
+                style="flex: 1; overflow-y: auto; padding: 15px;">
+                <div class="welcome-message-widget">
+                    <i class="fas fa-robot" style="color: #d32f2f; font-size: 2rem; margin-bottom: 10px;"></i>
+                    <h4>¡Hola! Soy Rojito</h4>
+                    <p>Sube tu examen PDF para analizarlo.</p>
+                </div>
+            </div>
+
+            <!-- Scroll Navigation Buttons -->
+
+
+            <div class="chat-widget-input"
+                style="flex-direction: column; gap: 10px; padding: 15px; align-items: stretch; height: auto; border-top: 1px solid #eee; background: white;">
+
+                <input type="file" id="pdfUpload" accept=".pdf" style="display: none;"
+                    onchange="handleBloodFileUpload(this)">
+
+                <!-- Menú Principal (Visible por defecto) -->
+                <div id="rojitoMenu" style="display: flex; gap: 10px;">
+                    <button id="btnHistoryData" onclick="loadPreviousAnalysis()"
+                        style="flex: 1; background: white; color: #d32f2f; border: 1px solid #d32f2f; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s;">
+                        <i class="fas fa-history"></i> Historial
+                    </button>
+                    <button id="btnNewAnalysisData" onclick="confirmNewAnalysis()"
+                        style="flex: 1; background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 0.8rem; box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2); transition: all 0.2s;">
+                        <i class="fas fa-file-medical"></i> Lectura de Examen PDF
+                    </button>
+                </div>
+
+                <!-- Botón de Subida (Oculto Inicialmente) -->
+                <button id="uploadBtn" onclick="document.getElementById('pdfUpload').click()"
+                    style="width: 100%; background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2); transition: all 0.2s;">
+                    <i class="fas fa-file-upload"></i> Subir Examen PDF
+                </button>
+
+                <!-- Botón Nuevo tras Historial -->
+                <!-- Botón Nuevo tras Historial -->
+                <button id="btnNewAfterHistory" onclick="confirmNewAnalysis(this)"
+                    style="width: 100%; background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; display: none; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2); transition: all 0.2s; margin-top: 5px;">
+                    <i class="fas fa-file-medical"></i> Lectura de Examen PDF
+                </button>
+
+                <!-- Status Indicator -->
+                <div class="status-indicator" id="bloodStatusIndicator"
+                    style="display: none; font-size: 0.85rem; color: #666; justify-content: center; padding: 8px; background: #f9f9f9; border-radius: 8px; margin-top: 5px;">
+                    <div class="typing-dots-widget" style="display: inline-block; margin-right: 8px;">
+                        <span style="background: #d32f2f;"></span><span style="background: #d32f2f;"></span><span
+                            style="background: #d32f2f;"></span>
+                    </div>
+                    <span id="bloodStatusText">Procesando...</span>
+                </div>
+
+                <!-- Overlay moved up -->
+
+                <div id="bloodyPrivacyAlert"
+                    style="display: block; background: #e3f2fd; padding: 10px; margin-top: 5px; border-radius: 4px; font-size: 0.75rem; color: #0d47a1;">
+                    <strong><i class="fas fa-shield-alt"></i> Privacidad:</strong> Por favor descarga los datos, por
+                    privacidad suelen ser eliminados periodicamente y al ejecutar un nuevo analisis se eliminan los
+                    anteriores.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="chatFloatingBtn" class="chat-floating-btn" onclick="toggleChat()" style="display: none;">
+        <i class="fas fa-robot"></i>
+        <span class="chat-badge" id="chatBadge" style="display: none;">1</span>
+    </button>
+
+    <button id="bloodyFloatingBtn" class="chat-floating-btn" onclick="openBloodTest()"
+        style="display: none; bottom: 100px; background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%); box-shadow: 0 4px 20px rgba(211, 47, 47, 0.4);">
+        <i class="fas fa-tint"></i>
+    </button>
+
+    <style>
+        .chat-floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2981b6 0%, #00bcd4 100%);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(41, 129, 182, 0.4);
+            transition: transform 0.3s, box-shadow 0.3s;
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-floating-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(41, 129, 182, 0.6);
+        }
+
+        .chat-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .chat-widget {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 380px;
+            height: 550px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 9999;
+            animation: slideUp 0.3s ease;
+        }
+
+        .chat-widget.open {
+            display: flex;
+        }
+
+        .chat-widget.minimized {
+            height: 60px;
+        }
+
+        .chat-widget.minimized .chat-widget-messages,
+        .chat-widget.minimized .chat-widget-input {
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-widget-header {
+            background: linear-gradient(135deg, #2981b6 0%, #00bcd4 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-widget-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .chat-widget-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .chat-widget-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .chat-widget-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .chat-widget-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .chat-widget-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-widget-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-widget-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 10px;
+        }
+
+        .chat-widget-messages::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        .welcome-message-widget {
+            text-align: center;
+            padding: 30px 15px;
+            color: #666;
+        }
+
+        .welcome-message-widget i {
+            font-size: 2.5rem;
+            color: #2981b6;
+            margin-bottom: 12px;
+        }
+
+        .welcome-message-widget h4 {
+            margin: 0 0 8px;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .welcome-message-widget p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #777;
+        }
+
+        .message-widget {
+            display: flex;
+            gap: 8px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+            margin-bottom: 4px;
+        }
+
+        .message-widget.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-widget-avatar {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+            align-self: flex-end;
+        }
+
+        .message-widget.bot .message-widget-avatar {
+            background: linear-gradient(135deg, #2981b6 0%, #00bcd4 100%);
+        }
+
+        .message-widget-content {
+            background: white;
+            padding: 6px 10px !important;
+            border-radius: 12px 12px 12px 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+            font-size: 0.875rem !important;
+            line-height: 1.4 !important;
+            max-width: 100%;
+            width: fit-content;
+        }
+
+        .message-widget.user .message-widget-content {
+            background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+            color: white;
+            border-radius: 12px 12px 2px 12px;
+            padding: 6px 11px !important;
+        }
+
+        .message-widget-time {
+            font-size: 0.65rem;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .typing-indicator-widget {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-left: 8px;
+        }
+
+        .typing-indicator-widget.active {
+            display: flex;
+        }
+
+        .typing-dots-widget {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px 12px 12px 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots-widget span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #2981b6;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots-widget span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots-widget span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .chat-widget-input {
+            padding: 12px 15px;
+            background: white;
+            border-top: 1px solid #e8e8e8;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .chat-widget-input form {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .chat-widget-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 20px;
+            outline: none;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-widget-input input:focus {
+            border-color: #2981b6;
+            box-shadow: 0 0 0 3px rgba(41, 129, 182, 0.1);
+        }
+
+        .chat-widget-input button {
+            width: 38px;
+            height: 38px;
+            min-width: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2981b6 0%, #00bcd4 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-widget-input button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(41, 129, 182, 0.3);
+        }
+
+        .chat-widget-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .chat-widget {
+                width: calc(100vw - 20px);
+                right: 10px;
+                bottom: 80px;
+                height: calc(100vh - 150px);
+                max-height: 600px;
+            }
+
+            #bloodTestWidget {
+                width: calc(100vw - 20px) !important;
+                right: 10px;
+                bottom: 80px;
+                height: calc(100vh - 150px);
+                max-height: 600px;
+            }
+
+            .chat-floating-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+
+            #bloodyFloatingBtn {
+                bottom: 90px !important;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const CHAT_API_URL = "{% url 'chat_proxy' %}";
+        const CHAT_QUOTA_URL = "{% url 'chat_quota' %}";
+        const BLOOD_UPLOAD_URL = "{% url 'proxy_upload_blood_test' %}";
+        const BLOOD_ANALYZE_URL = "{% url 'proxy_analyze_blood_test' %}";
+        const BLOOD_STATUS_URL = "{% url 'check_blood_status' %}";
+        const BLOOD_QUOTA_URL = "{% url 'get_blood_quota' %}";
+
+        // CLOUD SYNC URLs
+        const VITA_HISTORY_URL = "{% url 'load_vita_history' %}";
+        const VITA_SAVE_URL = "{% url 'save_vita_message' %}";
+        const VITA_CLEAR_URL = "{% url 'clear_vita_history' %}";
+        const WIDGET_STATE_URL = "{% url 'load_widget_state' %}";
+        const WIDGET_SAVE_URL = "{% url 'save_widget_state' %}";
+        const ROJITO_INCREMENT_URL = "{% url 'increment_rojito_count' %}";
+
+        const CHAT_SESSION_ID = '{{ request.user.username|escapejs }}';
+        const CHAT_STORAGE_KEY = `vita_chat_${CHAT_SESSION_ID}`;
+        const CHAT_ACTIVE_KEY = `vita_chat_active_${CHAT_SESSION_ID}`;
+
+        // ROJITO USER-SPECIFIC KEYS
+        const ROJITO_STATE_KEY = `rojito_ui_state_${CHAT_SESSION_ID}`;     // open/closed/minimized
+        const ROJITO_CONTENT_KEY = `rojito_content_data_${CHAT_SESSION_ID}`; // HTML content
+        const ROJITO_COUNT_KEY = `rojito_lifetime_count_${CHAT_SESSION_ID}`; // Counter
+
+        const chatWidget = document.getElementById('chatWidget');
+        const bloodWidget = document.getElementById('bloodTestWidget');
+        const chatMessages = document.getElementById('chatWidgetMessages');
+        const chatInput = document.getElementById('chatWidgetInput');
+        const chatSendBtn = document.getElementById('chatWidgetSendBtn');
+        const typingIndicator = document.getElementById('typingIndicatorWidget');
+        const chatFloatingBtn = document.getElementById('chatFloatingBtn');
+        const bloodyFloatingBtn = document.getElementById('bloodyFloatingBtn');
+
+        // GLOBAL SIDEBAR TOGGLE (Moved to top for safety)
+        window.toggleSidebar = function () {
+            const sidebar = document.getElementById("sidebar");
+            if (sidebar) {
+                sidebar.classList.toggle("active");
+                sidebar.classList.toggle("open"); // Fallback for legacy CSS
+            }
+        };
+
+        window.addEventListener('load', async () => {
+            try {
+                // LOAD CLOUD STATE
+                const res = await fetch(WIDGET_STATE_URL);
+                if (res.ok) {
+                    const state = await res.json();
+
+                    // 1. VITA STATE
+                    if (state.vita_active) {
+                        chatWidget.classList.add('open');
+                        chatFloatingBtn.style.display = 'none';
+                        loadChatHistoryWidget(); // Load cloud history
+                    } else if (state.vita_minimized) {
+                        chatWidget.classList.remove('open');
+                        chatWidget.classList.add('minimized');
+                        chatFloatingBtn.style.display = 'flex';
+                    } else {
+                        chatFloatingBtn.style.display = 'none';
+                    }
+
+                    // 2. ROJITO STATE
+                    if (state.rojito_active) {
+                        if (bloodWidget) bloodWidget.classList.add('open');
+                        bloodyFloatingBtn.style.display = 'none';
+                        // Restore Content if available
+                        if (state.rojito_content) restoreCloudRojitoContent(state.rojito_content);
+                    } else if (state.rojito_minimized) {
+                        if (bloodWidget) bloodWidget.classList.remove('open');
+                        bloodyFloatingBtn.style.display = 'flex';
+                    } else {
+                        if (bloodWidget) bloodWidget.classList.remove('open');
+                        bloodyFloatingBtn.style.display = 'none';
+                    }
+
+                    // 3. ROJITO COUNT
+                    // 3. ROJITO COUNT (Hidden per request)
+                    // const countDisplay = document.getElementById('rojitoLifetimeCount');
+                    // if (countDisplay) countDisplay.textContent = `#${state.rojito_lifetime_count}`;
+                }
+            } catch (e) {
+                console.error("Cloud Sync Error:", e);
+            }
+
+            // Check for persistent analysis (Polling still works locally/server mixed)
+            checkForResumableAnalysis();
+            updateRojitoQuotaDisplay();
+        });
+
+        // Helper to restore Rojito Content from Cloud
+        function restoreCloudRojitoContent(content) {
+            const msgs = document.getElementById('bloodWidgetMessages');
+            if (content.messages && content.messages.length > 0) {
+                // Clear welcome
+                const welcome = msgs.querySelector('.welcome-message-widget');
+                if (welcome) welcome.remove();
+
+                content.messages.forEach(msg => {
+                    // Re-render bot message
+                    // We need to use 'addBloodMessage' logic but manually
+                    const d = document.createElement('div');
+                    d.className = `message-widget ${msg.type}`;
+                    const inner = `<div class="message-widget-content">${simpleSanitize(marked.parse(msg.content))}</div>`;
+                    const avatar = `<div class="message-widget-avatar" style="background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);"><i class="fas fa-tint"></i></div>`;
+                    d.innerHTML = avatar + inner;
+                    msgs.appendChild(d);
+                });
+
+                // Show Download Button if ID exists
+                // This is a simplification. Ideally reuse addBloodBotResponse
+            }
+        }
+
+        async function saveCloudWidgetState(updates) {
+            try {
+                await fetch(WIDGET_SAVE_URL, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+            } catch (e) { console.error("Save State Error", e); }
+        }
+
+        function activateChat() {
+            chatFloatingBtn.style.display = 'none';
+            toggleChat();
+        }
+
+
+
+
+        function toggleChat() {
+            if (chatWidget.classList.contains('open') && !chatWidget.classList.contains('minimized')) {
+                minimizeChat();
+            } else if (chatWidget.classList.contains('minimized')) {
+                chatWidget.classList.remove('minimized');
+                chatInput.focus();
+                loadChatHistoryWidget();
+                updateInputQuota();
+                saveCloudWidgetState({ vita_active: true, vita_minimized: false });
+            } else {
+                if (bloodWidget && bloodWidget.classList.contains('open')) {
+                    minimizeBloodTest();
+                }
+
+                chatWidget.classList.add('open');
+                chatInput.focus();
+                loadChatHistoryWidget();
+                updateInputQuota();
+                chatFloatingBtn.style.display = 'none';
+                saveCloudWidgetState({ vita_active: true, vita_minimized: false });
+            }
+        }
+
+        function openBloodTest() {
+            if (chatWidget.classList.contains('open')) {
+                minimizeChat();
+            }
+
+            if (bloodWidget) {
+                bloodWidget.classList.remove('minimized');
+                bloodWidget.classList.add('open');
+
+                bloodyFloatingBtn.style.display = 'none';
+                saveCloudWidgetState({ rojito_active: true, rojito_minimized: false });
+                updateRojitoQuotaDisplay();
+            }
+        }
+
+        function closeBloodTest() {
+            if (bloodWidget) {
+                bloodWidget.classList.remove('open');
+                bloodWidget.classList.remove('minimized');
+
+                // Reset Content for Fresh Start
+                const msgs = document.getElementById('bloodWidgetMessages');
+                // Keep only welcome message
+                if (msgs) {
+                    // Remove all children except the first one (Welcome Message)
+                    // Or simpler: Re-inject welcome message.
+                    msgs.innerHTML = `
+            <div class="welcome-message-widget">
+                <i class="fas fa-notes-medical" style="color: #d32f2f;"></i>
+                <h4>¡Hola! Soy Rojito</h4>
+                <p>Sube tu examen PDF para analizarlo</p>
+            </div>`;
+                }
+
+                // Reset UI to MENU STATE
+                const uploadBtn = document.getElementById('uploadBtn');
+                const menu = document.getElementById('rojitoMenu');
+                const btnNew = document.getElementById('btnNewAfterHistory');
+                const statusIndicator = document.getElementById('bloodStatusIndicator');
+                const fileInput = document.getElementById('pdfUpload');
+                const chatWidgetMessages = document.getElementById('bloodWidgetMessages');
+
+                // Reset content
+                if (chatWidgetMessages) {
+                    chatWidgetMessages.innerHTML = `
+                    <div class="welcome-message-widget">
+                        <i class="fas fa-robot" style="color: #d32f2f; font-size: 2rem; margin-bottom: 10px;"></i>
+                        <h4>¡Hola! Soy Rojito</h4>
+                        <p>Sube tu examen PDF para analizarlo.</p>
+                    </div>`;
+                }
+
+                // Visibilidad inicial: MENU SOLAMENTE
+                if (menu) menu.style.display = 'flex';
+                if (uploadBtn) uploadBtn.style.display = 'none';
+                if (btnNew) btnNew.style.display = 'none';
+
+                const btnNewData = document.getElementById('btnNewAnalysisData');
+                if (btnNewData) btnNewData.style.display = 'flex';
+
+                const btnHistory = document.getElementById('btnHistoryData'); // ADDED
+                if (btnHistory) btnHistory.style.display = 'flex';
+
+                if (uploadBtn) uploadBtn.disabled = false;
+                if (statusIndicator) statusIndicator.style.display = 'none';
+                if (fileInput) fileInput.value = ''; // clear selected file
+            }
+            bloodyFloatingBtn.style.display = 'none'; // Completely vanish
+            saveCloudWidgetState({ rojito_active: false, rojito_minimized: false });
+        }
+
+        function minimizeBloodTest() {
+            if (bloodWidget) {
+                bloodWidget.classList.remove('open');
+            }
+            bloodyFloatingBtn.style.display = 'flex';
+            saveCloudWidgetState({ rojito_active: false, rojito_minimized: true });
+        }
+
+        async function updateInputQuota() {
+            try {
+                const response = await fetch(CHAT_QUOTA_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    const counter = document.getElementById('inputCounter');
+                    if (counter) {
+                        counter.textContent = `Inputs: ${data.daily_usage}/${data.daily_limit}`;
+                        if (data.daily_usage >= data.daily_limit) {
+                            counter.style.color = '#f44336';
+                            const sendBtn = document.getElementById('chatWidgetSendBtn');
+                            const input = document.getElementById('chatWidgetInput');
+                            if (sendBtn) sendBtn.disabled = true;
+                            if (input) {
+                                input.disabled = true;
+                                input.placeholder = "Límite diario alcanzado";
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error updating quota", e);
+            }
+        }
+
+        function closeChat() {
+            chatWidget.classList.remove('open');
+            chatFloatingBtn.style.display = 'none'; // Completely vanish per user request
+
+            saveCloudWidgetState({ vita_active: false, vita_minimized: false });
+            fetch(VITA_CLEAR_URL, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+
+            const allMessages = chatMessages.querySelectorAll('.message-widget');
+            allMessages.forEach(msg => msg.remove());
+
+            const welcomeHTML = `
+    <div class="welcome-message-widget">
+        <i class="fas fa-comment-medical"></i>
+        <h4>¡Hola! Soy VITA</h4>
+        <p>Tu asistente médico virtual</p>
+    </div>
+    `;
+            chatMessages.insertAdjacentHTML('afterbegin', welcomeHTML);
+        }
+
+        function minimizeChat() {
+            chatWidget.classList.remove('open');
+            chatWidget.classList.add('minimized');
+            chatFloatingBtn.style.display = 'flex';
+            saveCloudWidgetState({ vita_active: false, vita_minimized: true });
+        }
+
+        async function loadChatHistoryWidget() {
+            try {
+                const res = await fetch(VITA_HISTORY_URL);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.messages && data.messages.length > 0) {
+                        const welcomeMsg = chatMessages.querySelector('.welcome-message-widget');
+                        if (welcomeMsg) welcomeMsg.remove();
+                        // Clear existing manual messages to avoid dups if called multiple times?
+                        // Ideally we only append new ones, but reloading full history on open is safer for sync.
+                        // Lets clear chat first (except welcome if it was there)
+
+                        // Actually, lets just remove all messages first
+                        const allMessages = chatMessages.querySelectorAll('.message-widget');
+                        allMessages.forEach(msg => msg.remove());
+
+                        data.messages.forEach(msg => {
+                            addMessageToDOMWidget(msg.text, msg.isUser, msg.time);
+                        });
+                    }
+                }
+            } catch (e) { console.error("History Load Error", e); }
+        }
+
+        async function saveChatMessage(text, isUser) {
+            try {
+                await fetch(VITA_SAVE_URL, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, isUser: isUser })
+                });
+            } catch (e) { console.error("Save Msg Error", e); }
+        }
+
+        function addMessageToDOMWidget(text, isUser = false, time = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-widget ${isUser ? 'user' : 'bot'}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-widget-avatar';
+            avatar.innerHTML = isUser ? '{{ request.user.first_name.0|default:"U" }}' : '<i class="fas fa-robot"></i>';
+
+            const content = document.createElement('div');
+            content.className = 'message-widget-content';
+            content.style.padding = isUser ? '5px 10px' : '5px 9px';
+            content.style.fontSize = '0.875rem';
+            content.style.lineHeight = '1.35';
+
+            // Securely creating the message content
+            const messageTextContainer = document.createElement('div');
+            messageTextContainer.style.margin = '0';
+            messageTextContainer.textContent = text; // Prevents XSS
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-widget-time';
+            timeDiv.style.marginTop = '2px';
+            timeDiv.textContent = time || new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+            content.appendChild(messageTextContainer);
+            content.appendChild(timeDiv);
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+
+            const welcomeMsg = chatMessages.querySelector('.welcome-message-widget');
+            if (welcomeMsg) welcomeMsg.remove();
+
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addChatMessage(text, isUser = false) {
+            addMessageToDOMWidget(text, isUser);
+            saveChatMessage(text, isUser);
+        }
+
+        function updateCharCount(input) {
+            const counter = document.getElementById('charCounter');
+            const currentLength = input.value.length;
+            counter.textContent = `${currentLength}/800`;
+
+            if (currentLength > 0) {
+                counter.style.opacity = '1';
+            } else {
+                counter.style.opacity = '0';
+            }
+
+            if (currentLength > 800) {
+                counter.style.color = '#f44336';
+                const sendBtn = document.getElementById('chatWidgetSendBtn');
+                if (sendBtn) {
+                    sendBtn.disabled = true;
+                    sendBtn.style.opacity = '0.5';
+                    sendBtn.style.cursor = 'not-allowed';
+                }
+            } else {
+                counter.style.color = currentLength === 800 ? '#ff9800' : '#999';
+                const sendBtn = document.getElementById('chatWidgetSendBtn');
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.style.opacity = '1';
+                    sendBtn.style.cursor = 'pointer';
+                }
+            }
+        }
+
+        async function sendChatMessage(event) {
+            event.preventDefault();
+
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            if (message.length > 800) {
+                alert('El mensaje no puede superar los 800 caracteres.');
+                return;
+            }
+
+            addChatMessage(message, true);
+            chatInput.value = '';
+
+            chatSendBtn.disabled = true;
+            chatInput.disabled = true;
+            typingIndicator.classList.add('active');
+
+            try {
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        sessionId: CHAT_SESSION_ID,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+                let botReply = "Lo siento, hubo un error al procesar tu respuesta.";
+
+                if (Array.isArray(data) && data.length > 0) {
+                    botReply = data[0].output || botReply;
+                } else if (data.output) {
+                    botReply = data.output;
+                }
+
+                if (data.daily_usage !== undefined) {
+                    const idx = document.getElementById('inputCounter');
+                    if (idx) idx.textContent = `Inputs: ${data.daily_usage}/${data.daily_limit}`;
+                }
+
+                addChatMessage(botReply, false);
+
+            } catch (error) {
+                console.error('Error fetching chat response:', error);
+                addChatMessage("Error de conexión. Intenta de nuevo.", false);
+            } finally {
+                chatSendBtn.disabled = false;
+                chatInput.disabled = false;
+                typingIndicator.classList.remove('active');
+                chatInput.focus();
+            }
+        }
+
+        // --- BLOOD TEST LOGIC ---
+        let selectedBloodFile = null;
+
+        async function handleBloodFileUpload(input) {
+            if (input.files.length === 0) return;
+            const file = input.files[0];
+
+            if (file.type !== 'application/pdf') {
+                alert('Por favor selecciona un archivo PDF válido.');
+                input.value = ''; // Clear selection
+                return;
+            }
+
+            // CHECK QUOTA BEFORE SHOWING CONFIRMATION
+            try {
+                const quotaRes = await fetch(BLOOD_QUOTA_URL);
+                if (quotaRes.ok) {
+                    const quotaData = await quotaRes.json();
+                    if (quotaData.daily_usage >= quotaData.daily_limit) {
+                        const resetTime = quotaData.reset_time ? new Date(quotaData.reset_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : 'pronto';
+                        alert(`⚠️ Límite diario alcanzado\n\nHas usado tus ${quotaData.daily_limit} análisis de hoy.\nTu cupo se renueva a las ${resetTime}.`);
+                        input.value = ''; // Clear selection
+                        updateRojitoQuotaDisplay(); // Refresh UI
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Error checking quota:', e);
+                // Continue anyway, backend will validate
+            }
+
+            selectedBloodFile = file;
+
+            // UI: Hide Upload Button, Show Confirmation
+            document.getElementById('uploadBtn').style.display = 'none';
+
+            const confirmBox = document.getElementById('bloodFileConfirmBox');
+            confirmBox.style.display = 'flex';
+            confirmBox.innerHTML = `
+               <div style="background:#fff3e0; border: 5px solid #ffe0b2; padding:15px; border-radius:12px; margin-bottom:11px; text-align:right; width: 100%; box-sizing: border-box; max-height: 75vh; overflow-y: auto;">
+                   <div style="text-align: center; margin-bottom: 15px;">
+                       <i class="fas fa-file-pdf" style="font-size:2.5rem; color:#d32f2f; margin-bottom:8px;"></i>
+                       <div style="font-weight:bold; color:#333; word-break:break-all; font-size: 0.95rem;">${file.name}</div>
+                   </div>
+                   
+                   <div style="background: white; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                       <p style="font-size:0.85rem; color:#e65100; margin:0 0 8px 0; font-weight: bold; border-bottom: 1px solid #ffe0b2; padding-bottom: 5px;">
+                           <i class="fas fa-check-double"></i> Verifica lo siguiente:
+                       </p>
+                       <ul style="margin: 0; padding-left: 16px; font-size: 0.8rem; color: #5d4037; text-align: left; line-height: 1.6;">
+                            <li>🔓 <strong>Sin Contraseña:</strong> El PDF no debe pedir clave.</li> 
+                            <li>👁️ <strong>Legible:</strong> El texto debe verse claro, no borroso.</li>
+                            <li>🩸 <strong>Examen Médico:</strong> Solo resultados de laboratorio.</li>
+                            <li>📄 <strong>Formato Correcto:</strong> Valida que sea un PDF real.</li>
+                       </ul>
+                   </div>
+
+                   <p style="font-size:0.75rem; color:#d32f2f; margin:0; text-align: center; font-style: italic;">
+                       Al confirmar se iniciará el análisis y se tomará como proceso exitoso.
+                   </p>
+                </div>
+               <div style="display:flex; gap:10px; width: 100%;">
+                   <button onclick="executeBloodUpload()" style="flex:1; background:linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                       <i class="fas fa-check-circle"></i> Confirmar
+                   </button>
+                   <button onclick="cancelBloodUpload()" style="flex:1; background:#ef5350; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                       <i class="fas fa-times-circle"></i> Cancelar
+                   </button>
+               </div>
+            `;
+        }
+
+        function cancelBloodUpload() {
+            document.getElementById('bloodFileConfirmBox').style.display = 'none';
+
+            // Volver a Estado 1 (Inicio)
+            document.getElementById('uploadBtn').style.display = 'none'; // Ocultar Upload
+
+            const btnNewData = document.getElementById('btnNewAnalysisData');
+            if (btnNewData) btnNewData.style.display = 'flex'; // Mostrar Lectura
+
+            const btnHistory = document.getElementById('btnHistoryData');
+            if (btnHistory) btnHistory.style.display = 'flex'; // Restaurar Historial btn
+
+            const menu = document.getElementById('rojitoMenu');
+            if (menu) menu.style.display = 'flex';
+
+            const fileInput = document.getElementById('pdfUpload');
+            if (fileInput) fileInput.value = '';
+
+            selectedBloodFile = null;
+        }
+
+        let isAnalyzing = false; // Flag to track analysis state
+
+        async function executeBloodUpload() {
+            if (!selectedBloodFile) return;
+            const file = selectedBloodFile;
+
+            isAnalyzing = true;
+            window.addEventListener('beforeunload', handleBeforeUnload);
+
+            // Hide Confirmation Box
+            document.getElementById('bloodFileConfirmBox').style.display = 'none';
+
+            // Create user message in blood widget
+            addBloodMessage(`Archivo confirmado: <strong>${file.name}</strong>`, 'user');
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const statusIndicator = document.getElementById('bloodStatusIndicator');
+            const statusText = document.getElementById('bloodStatusText');
+
+            uploadBtn.disabled = true;
+            uploadBtn.style.display = 'none'; // Ocultar botón subida
+
+            const menu = document.getElementById('rojitoMenu');
+            if (menu) menu.style.display = 'none'; // Ocultar menú completo
+
+            statusIndicator.style.display = 'flex';
+
+            let seconds = 0;
+            const progressStates = [
+                { t: 1, text: "📂 Registrando cita (Cargando Documentación)..." },
+                { t: 5, text: "🔍 Validando cita (Verificando PDF)..." },
+                { t: 15, text: "👨‍⚕️ Pasando al consultorio (Analizando contenido)..." },
+                { t: 40, text: "🩸 Rojito leyendo exámenes..." },
+                { t: 90, text: "🧠 Rojito detectando patrones..." },
+                { t: 150, text: "📝 Redactando informe médico detallado..." }
+            ];
+
+            statusText.textContent = "⏳ Iniciando proceso de admisión...";
+            statusIndicator.style.display = 'flex';
+
+            const progressInterval = setInterval(() => {
+                seconds++;
+                const state = progressStates.find(s => s.t === seconds);
+                if (state) {
+                    statusText.textContent = state.text;
+                }
+            }, 1000);
+
+            try {
+                const btnClose = document.getElementById('btnCloseRojito');
+                if (btnClose) btnClose.style.display = 'none';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const uploadRes = await fetch(BLOOD_UPLOAD_URL, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: formData
+                });
+
+                if (!uploadRes.ok) {
+                    const errData = await uploadRes.json().catch(() => ({}));
+                    // Check if it's a quota limit error
+                    if (uploadRes.status === 429 || errData.error === 'Límite diario alcanzado') {
+                        throw new Error(`⚠️ ${errData.error || 'Límite alcanzado'}\n\n${errData.details || 'Has usado todos tus análisis de hoy.'}`);
+                    }
+
+                    const errorDetail = errData.details ? `\nDetalles: ${errData.details}` : '';
+                    throw new Error((errData.error || 'Error en la subida del archivo') + errorDetail);
+                }
+
+                const uploadData = await uploadRes.json();
+
+                let replyText = "";
+
+                const possibleKeys = ['output', 'reply', 'text', 'message', 'answer', 'content', 'response'];
+                const foundKey = possibleKeys.find(k => uploadData[k]);
+
+                if (foundKey) {
+                    replyText = uploadData[foundKey];
+                } else if (uploadData.conversation_id) {
+                    const conversationId = uploadData.conversation_id;
+                    statusText.textContent = "Analizando (aprox. 1-2 min)...";
+
+                    const analyzeRes = await fetch(BLOOD_ANALYZE_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            conversation_id: conversationId,
+                            file_name: file.name
+                        })
+                    });
+
+                    if (!analyzeRes.ok) {
+                        const analyzeErr = await analyzeRes.json().catch(() => ({}));
+                        // Check for quota error during analysis
+                        if (analyzeRes.status === 429 || analyzeErr.error === 'Límite diario alcanzado') {
+                            throw new Error(`⚠️ ${analyzeErr.error || 'Límite alcanzado'}\n\n${analyzeErr.details || 'Has usado todos tus análisis de hoy.'}`);
+                        }
+                        throw new Error('Error durante el análisis');
+                    }
+
+
+                    const analyzeData = await analyzeRes.json();
+
+                    if (analyzeData.status === 'processing') {
+                        // Async Handoff - Silent
+                        statusText.textContent = "🔄 Procesando...";
+                        // Removed "continued in background" message as requested
+                        startBloodPolling();
+                        return; // Exit function, polling handles the rest
+                    }
+
+                    const foundAnalyzeKey = possibleKeys.find(k => analyzeData[k]);
+                    replyText = foundAnalyzeKey ? analyzeData[foundAnalyzeKey] : (analyzeData.output || "Análisis completado.");
+
+                } else {
+                    replyText = "⚠️ **Error de Procesamiento:**\n\nNo pudimos interpretar la respuesta del sistema. Por favor intenta de nuevo con otro archivo limpio.";
+                }
+
+                if (checkAIRefusal(replyText)) {
+                    // AI Refused or failed to generate content
+                    const refusalMsg = "⚠️ **Documento No Válido o Ilegible:**\n\nEl sistema no pudo extraer información médica válida de este documento. Asegúrate de que:\n1. Sea un examen de laboratorio real.\n2. El texto sea legible (no borroso).\n3. No sea un documento protegido.\n\nPor favor, verifica e intenta nuevamente.";
+                    addBloodMessage(refusalMsg, 'bot');
+
+                    // Restore UI for retry
+                    uploadBtn.style.display = 'flex';
+                    uploadBtn.disabled = false;
+                    statusIndicator.style.display = 'none';
+                    return;
+                }
+
+                updateRojitoQuotaDisplay(true);
+                clearInterval(progressInterval);
+                statusIndicator.style.display = 'none';
+
+                isAnalyzing = false;
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+
+                if (btnClose) btnClose.style.display = '';
+
+                uploadBtn.style.display = 'none';
+                const privacyAlert = document.getElementById('bloodyPrivacyAlert');
+                if (privacyAlert) privacyAlert.style.display = 'block';
+
+                document.getElementById('pdfUpload').value = '';
+
+                addBloodBotResponse(replyText);
+
+            } catch (error) {
+
+                const btnClose = document.getElementById('btnCloseRojito');
+                if (btnClose) btnClose.style.display = '';
+
+                clearInterval(progressInterval);
+
+                statusIndicator.style.display = 'none';
+
+                isAnalyzing = false;
+                window.removeEventListener('beforeunload', handleBeforeUnload);
+
+                uploadBtn.disabled = false;
+                uploadBtn.style.display = 'flex';
+                uploadBtn.innerHTML = '<i class="fas fa-file-upload"></i> Subir Examen PDF';
+
+                // DEBUG: Log actual error
+                console.error('Rojito Upload Error:', error);
+                console.error('Error message:', error.message);
+
+                // let rawMsg = error.message || 'Error desconocido';
+                // let finalMsg = `Error: ${rawMsg}. Intenta nuevamente.`;
+
+                // if (rawMsg.includes('Status 500') || rawMsg.includes('Error uploading')) {
+                //    finalMsg = `⚠️ **Error de Procesamiento:**\\n\\nEl sistema no pudo leer este archivo...`;
+                // }
+
+                let rawMsg = error.message || 'Error desconocido';
+                let finalMsg = `⚠️ **Error del Servidor:**\n\n${rawMsg}\n\nPor favor, intenta nuevamente.`;
+
+                // Simplify connection/DNS errors
+                if (rawMsg.includes('NameResolutionError') || rawMsg.includes('getaddrinfo failed') || rawMsg.includes('Max retries exceeded')) {
+                    finalMsg = `⚠️ **Error del Servidor:**\n\nError de conexión: ([Errno 11001] getaddrinfo failed)\n\n**Servidor saturado**\n\nPor favor, intenta nuevamente.`;
+                }
+
+                addBloodMessage(finalMsg, 'bot');
+            }
+        }
+
+        function checkAIRefusal(text) {
+            const lower = text.toLowerCase();
+
+            if (lower.includes("lo siento") && lower.includes("no puedo")) return true;
+            if (lower.includes("no puedo ayudar")) return true;
+            if (text.length < 50) return true;
+            return false;
+        }
+
+        function handleBeforeUnload(e) {
+            if (isAnalyzing) {
+                e.preventDefault();
+                // Note: Modern browsers (Chrome, Edge, Firefox) often ignore this custom text and show a generic warning.
+                const msg = 'Si actualiza o sale de la página, el proceso de análisis podría ser interrumpido. ¿Aún así desea salir?';
+                e.returnValue = msg;
+                return msg;
+            }
+        }
+
+
+        function addBloodMessage(htmlContent, type) {
+            const msgs = document.getElementById('bloodWidgetMessages');
+            const d = document.createElement('div');
+            d.className = `message-widget ${type}`;
+
+            const avatar = type === 'bot'
+                ? `<div class="message-widget-avatar" style="background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);"><i class="fas fa-tint"></i></div>`
+                : `<div class="message-widget-avatar" style="background: #e0f7fa; color: #00bcd4;">Tu</div>`;
+
+            let inner = `<div class="message-widget-content" style="${type === 'user' ? 'background: #e0f7fa; color: #333;' : ''}">${htmlContent}</div>`;
+
+            if (type === 'bot') {
+                d.innerHTML = avatar + inner;
+            } else {
+                d.innerHTML = inner + avatar;
+            }
+
+            msgs.appendChild(d);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function addBloodBotResponse(markdownText) {
+            const msgs = document.getElementById('bloodWidgetMessages');
+            const d = document.createElement('div');
+            d.className = `message-widget bot`;
+            const uniqueId = 'blood-analysis-' + Date.now();
+
+            const avatar = `<div class="message-widget-avatar" style="background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);"><i class="fas fa-tint"></i></div>`;
+
+            // Marked is loaded via CDN script in main replacement
+            let htmlContent = marked.parse(markdownText);
+
+            // XSS Protection: Basic Sanitize
+            htmlContent = simpleSanitize(htmlContent);
+
+            const inner = `
+                <div class="message-widget-content">
+                    <div id="${uniqueId}" style="background: white; padding: 10px; border-radius: 5px;">
+                        ${htmlContent}
+                    </div>
+                    <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 5px; display: flex; gap: 10px;">
+                        <button onclick="downloadBloodPDF('${uniqueId}')" class="download-btn" style="display:inline-flex; align-items:center; gap:5px; padding: 6px 12px; background:#d32f2f; border:none; border-radius:5px; cursor:pointer; color:white; font-size: 0.85rem; font-weight:bold; transition: background 0.2s;">
+                           <i class="fas fa-file-pdf"></i> Descargar PDF
+                        </button>
+                    </div>
+                </div>
+             `;
+
+            d.innerHTML = avatar + inner;
+            msgs.appendChild(d);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        // Helper to find latest report and download it
+        function downloadBloodContent() {
+            const botMsgs = document.querySelectorAll('.message-widget.bot .message-widget-content > div[id^="blood-analysis-"]');
+            if (botMsgs.length > 0) {
+                const lastMsg = botMsgs[botMsgs.length - 1];
+                downloadBloodPDF(lastMsg.id);
+            } else {
+                alert('No hay reporte disponible para descargar.');
+            }
+        }
+
+        function downloadBloodPDF(elementId) {
+            const element = document.getElementById(elementId);
+
+            // Options for decent PDF output
+            const opt = {
+                margin: [15, 15, 15, 15], // mm
+                filename: `analisis_rojito_${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            // Visual feedback
+            const btn = document.querySelector(`button[onclick="downloadBloodPDF('${elementId}')"]`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
+            btn.disabled = true;
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }).catch(err => {
+                // console.error(err); // SECURITY: LOGS REMOVED
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 3000);
+            });
+        }
+
+        let bloodPollInterval = null;
+
+        async function checkForResumableAnalysis() {
+            try {
+                const res = await fetch(BLOOD_STATUS_URL);
+                if (!res.ok) return;
+                const data = await res.json();
+
+                if (data.status === 'processing') {
+
+                    const bloodWidget = document.getElementById('bloodTestWidget');
+                    const uploadBtn = document.getElementById('uploadBtn');
+                    const statusIndicator = document.getElementById('bloodStatusIndicator');
+                    const statusText = document.getElementById('bloodStatusText');
+
+                    const savedState = localStorage.getItem(ROJITO_STATE_KEY);
+
+                    if (savedState === 'open') {
+                        if (bloodWidget) bloodWidget.classList.add('open');
+                        if (bloodyFloatingBtn) bloodyFloatingBtn.style.display = 'none';
+                    } else if (savedState === 'closed') {
+                        if (bloodWidget) bloodWidget.classList.remove('open');
+                        if (bloodyFloatingBtn) bloodyFloatingBtn.style.display = 'none';
+                        return;
+                    } else {
+                        // Now 'closed' is handled above.
+
+                        if (bloodWidget) bloodWidget.classList.remove('open');
+                        if (bloodyFloatingBtn) bloodyFloatingBtn.style.display = 'flex';
+                        localStorage.setItem(ROJITO_STATE_KEY, 'minimized');
+                    }
+
+                    if (uploadBtn) uploadBtn.style.display = 'none';
+                    if (statusIndicator) {
+                        statusIndicator.style.display = 'flex';
+                        statusText.textContent = "🔄 Reanudando análisis en segundo plano...";
+                    }
+
+                    const btnClose = document.getElementById('btnCloseRojito');
+                    if (btnClose) btnClose.style.display = 'none';
+
+                    startBloodPolling();
+
+                } else if (data.status === 'completed') {
+                    // Logic: If user closed page during processing, they might not know it finished.
+                    // We can show a small badge or notification in the widget header if possible, 
+                    // or just rely on them checking history. 
+
+                    // Let's at least ensure the widget state reflects "Available"
+                    // If they left it open, keep it open.
+                    const savedState = localStorage.getItem(ROJITO_STATE_KEY);
+                    if (savedState === 'open') {
+                        if (bloodWidget) bloodWidget.classList.add('open');
+                        if (bloodyFloatingBtn) bloodyFloatingBtn.style.display = 'none';
+
+                        // Optional: Auto-load if it was just finished? 
+                        // Better: Show a "New Result Available" message in the empty chat or relying on History button.
+                        // Actually, let's auto-load it if the chat is empty!
+                        const msgs = document.getElementById('bloodWidgetMessages');
+                        if (msgs && msgs.children.length <= 1) { // Only welcome message
+                            loadPreviousAnalysis();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Error checking persistence:", e);
+            }
+        }
+
+        function startBloodPolling() {
+            if (bloodPollInterval) clearInterval(bloodPollInterval);
+
+            let pollAttempts = 0;
+            const MAX_POLL_ATTEMPTS = 120; // 10 minutes (5s * 120)
+
+            bloodPollInterval = setInterval(async () => {
+                pollAttempts++;
+
+                // SECURITY: Timeout after 10 minutes of polling
+                if (pollAttempts > MAX_POLL_ATTEMPTS) {
+                    clearInterval(bloodPollInterval);
+                    isAnalyzing = false;
+                    window.removeEventListener('beforeunload', handleBeforeUnload);
+
+                    const statusText = document.getElementById('bloodStatusText');
+                    const statusIndicator = document.getElementById('bloodStatusIndicator');
+                    if (statusIndicator) statusIndicator.style.display = 'none';
+                    addBloodMessage('⏱️ **Tiempo de espera agotado:**\n\nEl análisis está tardando más de lo esperado. Por favor, verifica tu historial más tarde o contacta soporte.', 'bot');
+                    const uploadBtn = document.getElementById('uploadBtn');
+                    if (uploadBtn) {
+                        uploadBtn.style.display = 'flex';
+                        uploadBtn.disabled = false;
+                    }
+                    return;
+                }
+
+                try {
+                    const res = await fetch(BLOOD_STATUS_URL);
+                    const data = await res.json();
+                    const statusText = document.getElementById('bloodStatusText');
+                    const statusIndicator = document.getElementById('bloodStatusIndicator');
+                    const uploadBtn = document.getElementById('uploadBtn');
+
+                    if (data.status === 'completed') {
+                        clearInterval(bloodPollInterval);
+                        isAnalyzing = false;
+                        window.removeEventListener('beforeunload', handleBeforeUnload);
+
+                        const btnClose = document.getElementById('btnCloseRojito');
+                        if (btnClose) btnClose.style.display = '';
+
+                        if (checkAIRefusal(data.result)) {
+                            const refusalMsg = "⚠️ **Documento No Válido o Ilegible:**\n\nEl sistema no pudo extraer información médica válida. Verifique el documento.";
+                            addBloodMessage(refusalMsg, 'bot');
+                            if (uploadBtn) {
+                                uploadBtn.style.display = 'flex';
+                                uploadBtn.disabled = false;
+                            }
+                            if (statusIndicator) statusIndicator.style.display = 'none';
+                            return;
+                        }
+
+                        if (statusText) statusText.textContent = "¡Análisis Completado!";
+                        if (statusIndicator) statusIndicator.style.display = 'none';
+                        if (uploadBtn) uploadBtn.style.display = 'none';
+
+                        const privacyAlert = document.getElementById('bloodyPrivacyAlert');
+                        if (privacyAlert) privacyAlert.style.display = 'block';
+
+                        // Show "New Analysis" button (Menu Button Restoration)
+                        // const btnNew = document.getElementById('btnNewAfterHistory');
+                        // if (btnNew) btnNew.style.display = 'flex'; // Removed duplicate
+
+                        const btnNewData = document.getElementById('btnNewAnalysisData');
+                        if (btnNewData) btnNewData.style.display = 'flex'; // Restaurar botón de menú
+
+                        const menu = document.getElementById('rojitoMenu');
+                        if (menu) menu.style.display = 'flex'; // Restaurar menú principal
+
+                        const btnHistory = document.getElementById('btnHistoryData');
+                        if (btnHistory) btnHistory.style.display = 'flex';
+
+                        addBloodMessage("✅ **Análisis Finalizado:**", 'bot');
+                        updateRojitoQuotaDisplay(true);
+                        addBloodBotResponse(data.result);
+
+                        // Inject Metadata Footer
+                        const msgContainer = document.getElementById('bloodWidgetMessages');
+                        const metaFooter = document.createElement('div');
+                        metaFooter.style.marginTop = '15px';
+                        metaFooter.style.padding = '10px';
+                        metaFooter.style.borderTop = '1px solid #eee';
+                        metaFooter.style.fontSize = '0.8rem';
+                        metaFooter.style.color = '#666';
+                        metaFooter.style.textAlign = 'right';
+
+                        metaFooter.innerHTML = `
+                            <div style="margin-bottom: 4px;">
+                                <i class="fas fa-file-medical" style="color: #d32f2f;"></i> <strong>Archivo:</strong> ${data.file_name || 'Examen Clínico'}
+                            </div>
+                            <div>
+                                <i class="far fa-clock"></i> <strong>Fecha:</strong> 
+                                ${(() => {
+                                const d = data.formatted_date ? new Date(data.formatted_date) : new Date();
+                                const colombiaStr = d.toLocaleString('es-CO', {
+                                    timeZone: 'America/Bogota',
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit', hour12: true
+                                });
+                                return `${colombiaStr} (Colombia)`;
+                            })()}
+                            </div>
+                        `;
+                        msgContainer.appendChild(metaFooter);
+                        msgContainer.scrollTop = msgContainer.scrollHeight;
+
+                    } else if (data.status === 'failed') {
+                        clearInterval(bloodPollInterval);
+                        isAnalyzing = false;
+                        window.removeEventListener('beforeunload', handleBeforeUnload);
+
+                        const btnClose = document.getElementById('btnCloseRojito');
+                        if (btnClose) btnClose.style.display = '';
+
+                        const menu = document.getElementById('rojitoMenu');
+                        if (menu) menu.style.display = 'flex'; // Restaurar menu si falla
+
+                        if (statusIndicator) statusIndicator.style.display = 'none';
+                        if (uploadBtn) {
+                            uploadBtn.disabled = false;
+                            uploadBtn.style.display = 'flex';
+                        }
+                        addBloodMessage(`❌ Error en el análisis: ${data.result || 'Desconocido'}`, 'bot');
+                    }
+                } catch (e) {
+                    // console.error("Polling error:", e); // SECURITY: LOGS REMOVED
+                }
+            }, 5000);
+        }
+
+        document.addEventListener('click', function (event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.toggle-sidebar');
+            const closeBtn = document.querySelector('.sidebar-close-btn button');
+
+            if (sidebar.classList.contains('open') &&
+                !sidebar.contains(event.target) &&
+                !toggleBtn.contains(event.target) &&
+                !closeBtn.contains(event.target)) {
+
+                sidebar.classList.remove('open');
+            }
+        });
+
+        function confirmNewAnalysis(triggerBtn) {
+            if (confirm("⚠️ ¿Iniciar nueva lectura?\n\nAl realizar un nuevo análisis, el examen previo será sobreescrito.")) {
+                if (triggerBtn) triggerBtn.style.display = 'none';
+                showUploadForm();
+            }
+        }
+
+        window.showUploadForm = function () {
+            const menu = document.getElementById('rojitoMenu');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const fileInput = document.getElementById('pdfUpload');
+            const btnNewData = document.getElementById('btnNewAnalysisData');
+
+            // 1. Manage Buttons Visibilty
+            // if (menu) menu.style.display = 'flex'; // Menu always visible
+
+            if (btnNewData) btnNewData.style.display = 'none'; // Hide "Lectura" button
+
+            const btnHistory = document.getElementById('btnHistoryData');
+            if (btnHistory) btnHistory.style.display = 'flex'; // Ensure History Visible
+
+            if (uploadBtn) {
+                uploadBtn.style.display = 'flex';
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-file-upload"></i> Subir Examen PDF';
+            }
+
+            if (fileInput) {
+                fileInput.value = ''; // Reset input
+            }
+
+            // 2. Clear Chat Completely (Fresh Start)
+            const msgContainer = document.getElementById('bloodWidgetMessages');
+            if (msgContainer) {
+                msgContainer.innerHTML = ''; // Nuke content
+
+                // Re-inject Welcome Message
+                const welcomeHTML = `
+                <div class="welcome-message-widget">
+                    <i class="fas fa-robot" style="color: #d32f2f; font-size: 2rem; margin-bottom: 10px;"></i>
+                    <h4>¡Hola! Soy Rojito</h4>
+                    <p>Sube tu examen PDF para analizarlo.</p>
+                </div>`;
+
+                msgContainer.insertAdjacentHTML('beforeend', welcomeHTML);
+            }
+        };
+
+        function cancelUpload() {
+            // Optional: Back to menu
+            const menu = document.getElementById('rojitoMenu');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const btnNewData = document.getElementById('btnNewAnalysisData');
+
+            if (menu) menu.style.display = 'flex';
+            if (uploadBtn) uploadBtn.style.display = 'none';
+            if (btnNewData) btnNewData.style.display = 'flex';
+        }
+
+        async function loadPreviousAnalysis() {
+            const btn = document.querySelector('button[onclick="loadPreviousAnalysis()"]');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(BLOOD_STATUS_URL);
+                const data = await res.json();
+
+                if (data.status === 'completed') {
+                    // Hide Menu
+                    document.getElementById('rojitoMenu').style.display = 'flex'; // FORCE VISIBLE FOR ROTATIONAL FLOW
+
+
+                    // Show "New Analysis" button for continuity -> YA NO NECESARIO (Menu Visible)
+                    // const btnNew = document.getElementById('btnNewAfterHistory');
+                    // if (btnNew) btnNew.style.display = 'flex';
+
+                    const btnNewData = document.getElementById('btnNewAnalysisData');
+                    const uploadBtn = document.getElementById('uploadBtn');
+                    const btnHistory = document.getElementById('btnHistoryData'); // ADDED
+
+                    if (btnNewData) btnNewData.style.display = 'flex'; // Estado 1: Lectura visible
+                    if (uploadBtn) uploadBtn.style.display = 'none';   // Estado 1: Upload oculto
+                    if (btnHistory) btnHistory.style.display = 'none'; // ESTO: Ocultar Historial si estamos viéndolo
+
+                    // Show privacy alert
+                    const privacyAlert = document.getElementById('bloodyPrivacyAlert');
+                    if (privacyAlert) privacyAlert.style.display = 'block';
+
+                    // 1. MOSTRAR RESULTADO
+                    addBloodMessage("✅ **Análisis Recuperado:**", 'bot');
+                    addBloodBotResponse(data.result);
+
+                    // 2. INYECTAR METADATA AL FINAL (Pie de página)
+                    const msgContainer = document.getElementById('bloodWidgetMessages');
+                    const metaFooter = document.createElement('div');
+                    metaFooter.style.marginTop = '15px';
+                    metaFooter.style.padding = '10px';
+                    metaFooter.style.borderTop = '1px solid #eee';
+                    metaFooter.style.fontSize = '0.8rem';
+                    metaFooter.style.color = '#666';
+                    metaFooter.style.textAlign = 'right';
+
+                    metaFooter.innerHTML = `
+                        <div style="margin-bottom: 4px;">
+                            <i class="fas fa-file-medical" style="color: #d32f2f;"></i> <strong>Archivo:</strong> ${data.file_name || 'Examen Clínico'}
+                        </div>
+                        <div>
+                            <i class="far fa-clock"></i> <strong>Fecha:</strong> 
+                            ${(() => {
+                            const d = data.formatted_date ? new Date(data.formatted_date) : new Date();
+                            // Database stores UTC, display in Colombia time
+                            const colombiaStr = d.toLocaleString('es-CO', {
+                                timeZone: 'America/Bogota',
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                            return `${colombiaStr} (Colombia)`;
+                        })()}
+                        </div>
+                    `;
+                    msgContainer.appendChild(metaFooter);
+
+                    // Auto-scroll al final
+                    msgContainer.scrollTop = msgContainer.scrollHeight;
+                } else {
+                    alert('No se encontró un análisis previo disponible o reciente.');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error al verificar análisis anteriores.');
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+            }
+        }
+
+        // --- PERSISTENCIA DE ESTADO ROJITO ---
+        function saveRojitoState() {
+            const msgContainer = document.getElementById('bloodWidgetMessages');
+            const menu = document.getElementById('rojitoMenu');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const btnNewData = document.getElementById('btnNewAnalysisData');
+            const btnHistory = document.getElementById('btnHistoryData');
+            const confirmBox = document.getElementById('bloodFileConfirmBox');
+            const statusIndicator = document.getElementById('bloodStatusIndicator');
+            const statusText = document.getElementById('bloodStatusText');
+
+            // Si hay confirmación activa, no guardar estado complejo, o guardar reset.
+            // Asumiremos guardar tal cual.
+
+            const state = {
+                html: msgContainer ? msgContainer.innerHTML : '',
+                menu: menu ? menu.style.display : 'flex',
+                uploadBtn: uploadBtn ? uploadBtn.style.display : 'none',
+                btnNewData: btnNewData ? btnNewData.style.display : 'flex',
+                btnHistory: btnHistory ? btnHistory.style.display : 'flex',
+                confirmBox: confirmBox ? confirmBox.style.display : 'none',
+                statusIndicator: statusIndicator ? statusIndicator.style.display : 'none',
+                statusText: statusText ? statusText.textContent : 'Procesando...',
+                timestamp: Date.now()
+            };
+
+            localStorage.setItem(ROJITO_CONTENT_KEY, JSON.stringify(state));
+        }
+
+        function restoreRojitoState() {
+            const stored = localStorage.getItem(ROJITO_CONTENT_KEY);
+            if (!stored) return false;
+
+            try {
+                const state = JSON.parse(stored);
+
+                const msgContainer = document.getElementById('bloodWidgetMessages');
+                if (msgContainer && state.html) {
+                    msgContainer.innerHTML = state.html;
+                    // Auto-scroll al final tras restaurar
+                    setTimeout(() => msgContainer.scrollTop = msgContainer.scrollHeight, 100);
+                }
+
+                const menu = document.getElementById('rojitoMenu');
+                if (menu) menu.style.display = state.menu;
+
+                const uploadBtn = document.getElementById('uploadBtn');
+                if (uploadBtn) uploadBtn.style.display = state.uploadBtn;
+
+                const btnNewData = document.getElementById('btnNewAnalysisData');
+                if (btnNewData) btnNewData.style.display = state.btnNewData;
+
+                const btnHistory = document.getElementById('btnHistoryData');
+                if (btnHistory) btnHistory.style.display = state.btnHistory;
+
+                const confirmBox = document.getElementById('bloodFileConfirmBox');
+                if (confirmBox) confirmBox.style.display = state.confirmBox;
+
+                const statusIndicator = document.getElementById('bloodStatusIndicator');
+                const statusText = document.getElementById('bloodStatusText');
+
+                if (statusIndicator) statusIndicator.style.display = state.statusIndicator;
+                if (statusText) statusText.textContent = state.statusText;
+
+                // CRITICAL: Resume Polling if pending
+                if (state.statusIndicator === 'flex' || state.statusIndicator === 'block') {
+
+                    const btnClose = document.getElementById('btnCloseRojito');
+                    if (btnClose) btnClose.style.display = 'none';
+
+                    // Check if actually processing
+                    if (typeof startBloodPolling === 'function') {
+                        startBloodPolling();
+                    }
+                }
+
+                return true;
+            } catch (e) {
+                console.error("Error restaurando estado Rojito", e);
+                return false;
+            }
+        }
+
+
+        async function updateRojitoQuotaDisplay(increment = false) {
+            try {
+                if (increment) {
+                    await fetch(ROJITO_INCREMENT_URL, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+                }
+
+                const res = await fetch(BLOOD_QUOTA_URL);
+                if (res.ok) {
+                    const data = await res.json();
+
+                    const daily = document.getElementById('rojitoDailyCount');
+                    const uploadBtn = document.getElementById('uploadBtn');
+                    const btnNewData = document.getElementById('btnNewAnalysisData');
+                    const limitReached = data.daily_usage >= data.daily_limit;
+
+                    if (daily) {
+                        daily.textContent = `${data.daily_usage}/${data.daily_limit}`;
+                        if (limitReached) {
+                            daily.style.background = '#ffebee';
+                            daily.style.color = '#c62828';
+                        } else {
+                            daily.style.background = 'rgba(255,255,255,0.2)';
+                            daily.style.color = 'inherit';
+                        }
+                    }
+
+                    // HIDE BUTTONS IF LIMIT REACHED
+                    if (limitReached) {
+                        if (uploadBtn) uploadBtn.style.display = 'none';
+                        if (btnNewData) {
+                            btnNewData.style.display = 'none';
+                            // Also ensure we don't accidentally hide it if it should be visible in history view?
+                            // Actually, if limit reached, we CANT do new analysis, so hiding is correct.
+                        }
+
+                        // Optional: Show a message in place of the button?
+                        let limitMsg = document.getElementById('rojitoLimitMsg');
+                        if (!limitMsg && btnNewData && btnNewData.parentNode) {
+                            limitMsg = document.createElement('div');
+                            limitMsg.id = 'rojitoLimitMsg';
+                            limitMsg.textContent = "Límite diario alcanzado";
+                            limitMsg.style.color = '#c62828';
+                            limitMsg.style.fontSize = '0.8rem';
+                            limitMsg.style.textAlign = 'center';
+                            limitMsg.style.marginTop = '10px';
+                            btnNewData.parentNode.appendChild(limitMsg);
+                        }
+                    } else {
+                        // Restore visibility if not reached (and context appropriate)
+                        // This is tricky because visibility also depends on UI state (Menu vs Upload vs Result).
+                        // We should only "unhide" if the state says they should be there. 
+                        // But since we modify style.display directly, we might conflict.
+                        // BEST APPROACH: Just blocking the NEW actions.
+                        // We won't auto-show them here because that breaks state restoration.
+                        // But we can ensure they aren't forced hidden if we are in a state that needs them?
+
+                        // Simpler: Just rely on the backend check for safety, and here we just hide if reached.
+                        // If we are "under limit" again (e.g. next day), the standard UI logic in openBloodTest/etc will show them.
+                        const limitMsg = document.getElementById('rojitoLimitMsg');
+                        if (limitMsg) limitMsg.remove();
+                    }
+
+                    // const lifetime = document.getElementById('rojitoLifetimeCount');
+                    // if (lifetime) lifetime.textContent = `#${data.lifetime_count}`;
+                }
+            } catch (e) {
+                console.error("Error updating Rojito quota", e);
+            }
+        }
+
+        // Security Helper
+        function simpleSanitize(html) {
+            if (!html) return "";
+            return html
+                .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "")
+                .replace(/<script\b[^>]*\/>/gim, "")
+                .replace(/ on\w+="[^"]*"/gim, ' data-blocked-event="true"')
+                .replace(/javascript:/gim, "blocked:");
+        }
+
+
+
+    </script>
+
+    <!-- GLOBAL MEDIA MODAL -->
+    <div id="globalMediaModal" class="media-modal" onclick="closeMediaModal(event)">
+        <span class="media-modal-close" onclick="closeMediaModal(event)">&times;</span>
+        <img class="media-modal-content" id="globalModalImage" onclick="event.stopPropagation()">
+        <video class="media-modal-content" id="globalModalVideo" controls style="display:none;"
+            onclick="event.stopPropagation()" controlsList="nodownload"></video>
+    </div>
+
+    <script>
+        function openMediaModal(src, type) {
+            var modal = document.getElementById("globalMediaModal");
+            var img = document.getElementById("globalModalImage");
+            var vid = document.getElementById("globalModalVideo");
+
+            modal.style.display = "flex";
+
+            if (type === 'video') {
+                img.style.display = "none";
+                vid.style.display = "block";
+                vid.src = src;
+            } else {
+                vid.style.display = "none";
+                vid.pause();
+                vid.src = "";
+                img.style.display = "block";
+                img.src = src;
+            }
+        }
+
+        function closeMediaModal(event) {
+            if (event.target.classList.contains('media-modal') || event.target.classList.contains('media-modal-close')) {
+                var modal = document.getElementById("globalMediaModal");
+                var vid = document.getElementById("globalModalVideo");
+                modal.style.display = "none";
+                vid.pause();
+                vid.src = "";
+            }
+        }
+    </script>
+</body>
+
+</html>

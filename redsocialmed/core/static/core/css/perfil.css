@@ -1,0 +1,565 @@
+/* ===== PERFIL - DISEÑO MODERNO ===== */
+
+.main-container {
+    display: flex;
+    padding: 0;
+    background: linear-gradient(135deg, #00bcd4 0%, #00acc1 50%, #0097a7 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Elementos decorativos de fondo */
+.main-container::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    bottom: -200px;
+    left: -100px;
+    z-index: 0;
+}
+
+.main-container::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+    top: 100px;
+    right: -50px;
+    z-index: 0;
+}
+
+/* ===== PANEL IZQUIERDO - PERFIL ===== */
+.perfil-left {
+    width: 35%;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px 30px;
+    margin: 20px;
+    margin-left: 40px;
+    border-radius: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* Contenedor de foto de perfil */
+.perfil-header {
+    position: relative;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.foto-perfil-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.foto-perfil {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 8px solid #00bcd4;
+    display: block;
+    object-fit: cover;
+    box-shadow: 0 8px 25px rgba(0, 188, 212, 0.3);
+}
+
+/* Icono de especialidad */
+.icono-especialidad {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 60px;
+    height: 60px;
+    background: #00bcd4;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    border: 4px solid white;
+}
+
+.icono-especialidad i {
+    font-size: 28px;
+    color: white;
+}
+
+/* Información del perfil */
+.perfil-left h2 {
+    font-size: 28px;
+    color: #00bcd4;
+    margin: 15px 0 5px 0;
+    font-weight: 700;
+    text-align: center;
+}
+
+.especialidad {
+    font-size: 18px;
+    color: #00acc1;
+    font-weight: 500;
+    margin: 5px 0;
+    text-align: center;
+}
+
+.ciudad {
+    font-size: 14px;
+    color: #666;
+    margin: 5px 0 20px 0;
+    text-align: center;
+}
+
+/* Botones de acción */
+.botones-accion {
+    display: flex;
+    gap: 10px;
+    margin: 25px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-accion {
+    flex: 1;
+    min-width: 100px;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-seguir {
+    background: #00bcd4;
+    box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+.btn-seguir:hover {
+    background: #00acc1;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+}
+
+.btn-publicaciones {
+    background: #0097a7;
+}
+
+.btn-publicaciones:hover {
+    background: #00838f;
+    transform: translateY(-2px);
+}
+
+.btn-mensaje {
+    background: #00acc1;
+}
+
+.btn-mensaje:hover {
+    background: #0097a7;
+    transform: translateY(-2px);
+}
+
+.btn-video {
+    background: #00bcd4;
+}
+
+.btn-video:hover {
+    background: #00acc1;
+    transform: translateY(-2px);
+}
+
+/* Biografía */
+.perfil-left p {
+    text-align: center;
+    margin: 15px 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.perfil-left strong {
+    color: #00bcd4;
+}
+
+/* Contador de seguidores */
+.seguidores-info {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+    border-radius: 15px;
+}
+
+.seguidores-info div {
+    text-align: center;
+}
+
+.seguidores-info .numero {
+    font-size: 24px;
+    font-weight: 700;
+    color: #00bcd4;
+    display: block;
+}
+
+.seguidores-info .label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+}
+
+/* ===== PANEL DERECHO - PUBLICACIONES ===== */
+.perfil-right {
+    width: 60%;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    margin-right: 20px;
+}
+
+/* Formulario de publicación */
+.form-publicacion {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.form-publicacion textarea {
+    width: 100%;
+    padding: 15px;
+    resize: none;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+.form-publicacion textarea:focus {
+    outline: none;
+    border-color: #00bcd4;
+}
+
+.form-publicacion input[type="file"] {
+    margin-bottom: 15px;
+}
+
+.form-publicacion button {
+    background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 188, 212, 0.3);
+}
+
+.form-publicacion button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 188, 212, 0.4);
+}
+
+/* ===== TARJETAS DE PUBLICACIÓN ===== */
+.publicacion {
+    background: white;
+    border-radius: 20px;
+    padding: 0;
+    margin-bottom: 35px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.publicacion:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+/* Header de la publicación */
+.publicacion-header {
+    background: linear-gradient(135deg, #00bcd4 0%, #00acc1 100%);
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.publicacion-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid white;
+    object-fit: cover;
+}
+
+.publicacion-info h3 {
+    margin: 0;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.publicacion-info .especialidad-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: white;
+    margin-top: 5px;
+}
+
+/* Contenido de la publicación */
+.publicacion-contenido {
+    padding: 20px;
+}
+
+.publicacion-titulo {
+    font-size: 18px;
+    font-weight: 600;
+    color: #00bcd4;
+    margin-bottom: 10px;
+}
+
+.publicacion p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.publicacion img,
+.publicacion video {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 15px;
+    margin: 15px 0;
+}
+
+/* Enlace "Ver más" */
+.ver-mas {
+    color: #00bcd4;
+    font-size: 14px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.ver-mas:hover {
+    text-decoration: underline;
+}
+
+/* ===== REACCIONES ===== */
+.reacciones {
+    display: flex;
+    gap: 15px;
+    padding: 15px 20px;
+    border-top: 1px solid #f0f0f0;
+    align-items: center;
+}
+
+.reacciones form {
+    display: inline;
+}
+
+.reacciones button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.reacciones button:hover {
+    background: #f0f0f0;
+    color: #00bcd4;
+}
+
+.reacciones button i {
+    font-size: 16px;
+}
+
+/* Botón de Me gusta */
+.btn-like {
+    color: #00bcd4;
+}
+
+.btn-like:hover {
+    background: #e0f7fa;
+}
+
+/* Botón de Comentar */
+.btn-comentar {
+    color: #00acc1;
+}
+
+.btn-comentar:hover {
+    background: #e0f7fa;
+}
+
+/* Botón de Compartir */
+.btn-compartir {
+    color: #0097a7;
+}
+
+.btn-compartir:hover {
+    background: #e0f7fa;
+}
+
+/* Botón de Guardar */
+.btn-guardar {
+    color: #00838f;
+}
+
+.btn-guardar:hover {
+    background: #e0f7fa;
+}
+
+/* ===== MENSAJES VACÍOS ===== */
+.cartilla {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    color: #666;
+    text-align: center;
+}
+
+.cartilla ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cartilla li {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* ===== SCROLLBAR PERSONALIZADO ===== */
+.perfil-left::-webkit-scrollbar,
+.perfil-right::-webkit-scrollbar {
+    width: 8px;
+}
+
+.perfil-left::-webkit-scrollbar-track,
+.perfil-right::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.perfil-left::-webkit-scrollbar-thumb,
+.perfil-right::-webkit-scrollbar-thumb {
+    background: rgba(0, 188, 212, 0.5);
+    border-radius: 10px;
+}
+
+.perfil-left::-webkit-scrollbar-thumb:hover,
+.perfil-right::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 188, 212, 0.7);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .main-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .perfil-left,
+    .perfil-right {
+        width: 100%;
+        max-height: none;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .perfil-left {
+        margin: 15px auto;
+        padding: 30px 20px;
+    }
+
+    .perfil-right {
+        margin: 0 auto;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .perfil-left {
+        padding: 25px 15px;
+        margin: 10px auto;
+    }
+
+    .perfil-left h2 {
+        font-size: 24px;
+    }
+
+    .especialidad {
+        font-size: 16px;
+    }
+
+    .foto-perfil {
+        width: 150px;
+        height: 150px;
+    }
+
+    .icono-especialidad {
+        width: 50px;
+        height: 50px;
+    }
+
+    .icono-especialidad i {
+        font-size: 24px;
+    }
+
+    .botones-accion {
+        flex-direction: column;
+    }
+
+    .btn-accion {
+        width: 100%;
+    }
+
+    .form-publicacion {
+        padding: 15px;
+    }
+
+    .publicacion-header {
+        padding: 12px 15px;
+    }
+
+    .publicacion-contenido {
+        padding: 15px;
+    }
+}

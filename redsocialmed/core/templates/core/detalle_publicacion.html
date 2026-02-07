@@ -1,0 +1,480 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Publicación{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/profile_custom.css' %}">
+<style>
+    .detalle-wrapper {
+        flex: 3;
+        margin-right: 20px;
+        min-width: 0;
+    }
+
+    .btn-volver {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        background: white;
+        padding: 8px 20px;
+        border-radius: 30px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+    }
+
+    .btn-volver:hover {
+        transform: translateX(-5px);
+        box-shadow: 0 4px 8px rgba(0, 188, 212, 0.2);
+    }
+
+    .post-card-detail {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    .post-card-detail .post-body {
+        padding: 0;
+        flex-direction: column;
+    }
+
+    .post-card-detail .post-thumbnail {
+        height: auto;
+        max-height: 650px;
+        flex: none;
+        width: 100%;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        border-radius: 0;
+        position: relative;
+        /* Importante para el botón de expandir */
+    }
+
+    .post-card-detail .post-thumbnail img,
+    .post-card-detail .post-thumbnail video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        max-height: 650px;
+    }
+
+    .post-card-detail .post-content-text {
+        padding: 30px 40px;
+    }
+
+    .post-card-detail .post-title {
+        font-size: 1.6rem;
+        margin-bottom: 20px;
+        color: var(--secondary-color);
+    }
+
+    .post-card-detail .post-excerpt {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #444;
+    }
+
+    .comentarios-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--secondary-color);
+        margin-bottom: 25px;
+        font-size: 1.2rem;
+    }
+
+    .comentario-item {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: flex;
+        gap: 15px;
+        transition: transform 0.2s;
+        border-left: 4px solid transparent;
+    }
+
+    .comentario-item:hover {
+        border-left: 4px solid var(--primary-color);
+    }
+
+    .comentario-autor-nombre {
+        color: #333;
+        font-weight: 700;
+        font-size: 1rem;
+        text-decoration: none;
+    }
+
+    .comentario-metadata {
+        font-size: 0.8rem;
+        color: #999;
+        margin-left: 10px;
+    }
+
+    .comentario-contenido {
+        margin-top: 5px;
+        color: #555;
+        line-height: 1.5;
+    }
+
+    .form-comentario-wrapper {
+        background: white;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        position: sticky;
+        bottom: 20px;
+    }
+
+    .input-comentario {
+        width: 100%;
+        box-sizing: border-box;
+        border: 2px solid #f0f0f0;
+        border-radius: 25px;
+        padding: 12px 20px;
+        outline: none;
+        resize: vertical;
+        min-height: 50px;
+        height: 50px;
+        font-family: inherit;
+        transition: border-color 0.2s, background 0.2s;
+        background: #f9f9f9;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .input-comentario:focus {
+        border-color: var(--primary-color);
+        background: white;
+    }
+
+    .btn-enviar-comentario {
+        margin-top: 15px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 188, 212, 0.3);
+        transition: transform 0.2s;
+        float: right;
+    }
+
+    .btn-enviar-comentario:hover {
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 900px) {
+        .detalle-wrapper {
+            margin-right: 0;
+            width: 100%;
+        }
+    }
+
+    .comentario-form {
+        background: white;
+        padding: 20px;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .post-card-detail .post-content-text {
+            padding: 20px;
+        }
+
+        .post-card-detail .post-title {
+            font-size: 1.3rem;
+        }
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="detalle-wrapper">
+
+    <a href="javascript:history.back()" class="btn-volver">
+        <i class="fas fa-arrow-left"></i> Volver al perfil
+    </a>
+
+    <article class="post-card post-card-detail">
+        <div class="post-header">
+            <div class="post-author">
+                <a href="{% url 'perfil' publicacion.autor.id %}"
+                    style="text-decoration: none; display: flex; align-items: center; gap: 12px; color: inherit;">
+                    {% if publicacion.autor.foto_perfil %}
+                    <img src="{{ publicacion.autor.foto_perfil.url }}" alt="Autor" class="post-author-img">
+                    {% else %}
+                    {% static 'core/img/user_default.png' as default_img %}
+                    <div class="post-author-img"
+                        style="background-image: url('{{ default_img }}'); background-position: center; background-size: cover;">
+                    </div>
+                    {% endif %}
+
+                    <div class="post-author-info">
+                        <h4>
+                            {% if publicacion.autor.es_profesional %}
+                            {% if publicacion.autor.titulo_profesional %}
+                            {{ publicacion.autor.titulo_profesional }}
+                            {% else %}
+                            Dr.
+                            {% endif %}
+                            {% endif %}
+                            {% if publicacion.autor.first_name or publicacion.autor.last_name %}
+                            {{ publicacion.autor.first_name }} {{ publicacion.autor.last_name }}
+                            {% else %}
+                            {{ publicacion.autor.username }}
+                            {% endif %}
+                        </h4>
+                    </div>
+                </a>
+            </div>
+
+            {% if publicacion.autor.es_profesional %}
+            <div class="post-tag">
+                <i class="fas fa-stethoscope"></i>
+                <span>Medicina</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="post-body">
+            {% if publicacion.imagen %}
+            <div class="post-thumbnail">
+                <img src="{{ publicacion.imagen.url }}" alt="Post Image" onclick="openMediaModal(this.src, 'image')"
+                    style="cursor: zoom-in;">
+            </div>
+            {% elif publicacion.video %}
+            <div class="post-thumbnail">
+                <video src="{{ publicacion.video.url }}" controls controlsList="nodownload"
+                    class="prevent-select"></video>
+                <button onclick="openMediaModal('{{ publicacion.video.url }}', 'video')"
+                    style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 5px; cursor: pointer; padding: 10px 14px; z-index: 10; font-size: 16px;"
+                    title="Ampliar video">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+            {% endif %}
+
+            <div class="post-content-text">
+                {% if publicacion.contenido|length > 50 %}
+                <h1 class="post-title">{{ publicacion.contenido|truncatewords:8 }}</h1>
+                {% endif %}
+
+                <p class="post-excerpt">
+                    {{ publicacion.contenido|linebreaksbr }}
+                </p>
+            </div>
+        </div>
+
+        <div class="post-footer" style="padding: 20px 40px; border-top: 1px solid #f0f0f0;">
+            <button class="reaction-btn" onclick="document.querySelector('.input-comentario').focus()">
+                <i class="fas fa-comment-dots"></i> {{ publicacion.comentarios.count }} Comentarios
+            </button>
+
+            {% if request.user == publicacion.autor %}
+            <div style="margin-left: auto; display: flex; align-items: center;">
+                <button type="button" class="reaction-btn" style="color: var(--primary-color); margin-right: 15px;"
+                    onclick="openEditModal()">
+                    <i class="fas fa-edit"></i> Editar
+                </button>
+                <form method="post" action="{% url 'eliminar_publicacion' publicacion.id %}">
+                {% csrf_token %}
+                <button type="submit" class="reaction-btn" style="color: #f44336;"
+                    onclick="return confirm('¿Estás seguro de eliminar esta publicación y sus comentarios?');">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
+            </form>
+            </div>
+            {% else %}
+            <button class="reaction-btn" style="color: #ff9800; margin-left: auto;"
+                onclick="alert('Gracias. Hemos recibido tu reporte.')">
+                <i class="fas fa-flag"></i> Denunciar
+            </button>
+            {% endif %}
+        </div>
+    </article>
+
+    <section class="comentarios-section">
+        <div class="comentarios-header">
+            <i class="fas fa-comments"></i>
+            <h3>Conversación</h3>
+        </div>
+
+        <div id="comments-container">
+            {% for comentario in comentarios %}
+            {% include 'core/includes/comment_card.html' %}
+            {% empty %}
+            <div
+                style="text-align: center; padding: 40px; color: #999; background: white; border-radius: 15px; margin-bottom: 20px;">
+                <i class="far fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                <p>Aún no hay comentarios. ¡Inicia la charla!</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="loading-spinner" style="text-align: center; display: none; padding: 20px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary-color);"></i>
+        </div>
+
+        {% if comentarios.has_next %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                let page = 1;
+                let empty_page = false;
+                let block_request = false;
+                const container = document.getElementById('comments-container');
+                const spinner = document.getElementById('loading-spinner');
+
+                window.onscroll = function () {
+                    if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 300)) {
+                        if (empty_page === false && block_request === false) {
+                            block_request = true;
+                            page += 1;
+
+                            spinner.style.display = 'block';
+
+                            fetch(`?page=${page}`, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                }
+                            })
+                                .then(response => {
+                                    if (response.ok) {
+                                        return response.text();
+                                    }
+                                    throw new Error('Network response was not ok');
+                                })
+                                .then(html => {
+                                    if (html.trim() === '') {
+                                        empty_page = true;
+                                    } else {
+                                        container.insertAdjacentHTML('beforeend', html);
+                                    }
+                                    block_request = false;
+                                    spinner.style.display = 'none';
+                                })
+                                .catch(error => {
+                                    console.error('Error loading comments:', error);
+                                    block_request = false;
+                                    spinner.style.display = 'none';
+                                    empty_page = true;
+                                });
+                        }
+                    }
+                };
+            });
+        </script>
+        {% endif %}
+
+        <div class="form-comentario-wrapper">
+            <form method="post" action="{% url 'crear_comentario' pub_id=publicacion.id %}">
+                {% csrf_token %}
+                <div style="display: flex; gap: 20px;">
+                    <div
+                        style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 2px solid var(--primary-color);">
+                        {% if request.user.foto_perfil %}
+                        <img src="{{ request.user.foto_perfil.url }}"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                        <img src="{% static 'core/img/user_default.png' %}"
+                            style="width: 100%; height: 100%; object-fit: cover;">
+                        {% endif %}
+                    </div>
+
+                    <div style="flex: 1;">
+                        <textarea name="contenido" class="input-comentario"
+                            placeholder="Escribe tu opinión o pregunta..." required></textarea>
+                        <button type="submit" class="btn-enviar-comentario">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div style="clear: both;"></div>
+        </div>
+    </section>
+
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<div id="editModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 style="margin-bottom: 20px; color: var(--secondary-color);">Editar Publicación</h3>
+        <form method="post" action="{% url 'editar_publicacion' publicacion.id %}">
+            {% csrf_token %}
+            <textarea name="contenido" class="input-comentario" style="height: 150px; border-radius: 15px; margin-bottom: 20px; resize: none;">{{ publicacion.contenido }}</textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeEditModal()" class="btn-volver" style="border: none; cursor: pointer; margin: 0; background: #f0f0f0; color: #666;">Cancelar</button>
+                <button type="submit" class="btn-enviar-comentario" style="float: none; margin: 0;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openEditModal() {
+        document.getElementById('editModal').style.display = 'flex';
+        // Focus cursor at end of text
+        const textarea = document.querySelector('#editModal textarea');
+        const val = textarea.value;
+        textarea.value = '';
+        textarea.value = val;
+        textarea.focus();
+    }
+    
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Close on outside click
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEditModal();
+        }
+    });
+</script>
+{% endblock %}

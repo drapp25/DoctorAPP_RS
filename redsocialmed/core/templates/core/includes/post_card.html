@@ -1,0 +1,80 @@
+{% load static %}
+<div class="post-card" style="margin-bottom: 30px;">
+    <div class="post-header">
+        <div class="post-author">
+            <a href="{% url 'perfil' pub.autor.id %}"
+                style="text-decoration: none; display: flex; align-items: center; gap: 12px; color: inherit;">
+                {% if pub.autor.foto_perfil %}
+                <img src="{{ pub.autor.foto_perfil.url }}" alt="Autor" class="post-author-img">
+                {% else %}
+                <div class="post-author-img"
+                    style="background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <img src="{% static 'core/img/user_default.png' %}"
+                        style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                {% endif %}
+
+                <div class="post-author-info">
+                    <h4 style="color: white;">
+                        {% if pub.autor.es_profesional %}{{ pub.autor.titulo_profesional|default:"Dr." }} {% endif %}
+                        {% if pub.autor.first_name or pub.autor.last_name %}
+                        {{ pub.autor.first_name }} {{ pub.autor.last_name }}
+                        {% else %}
+                        {{ pub.autor.username }}
+                        {% endif %}
+                    </h4>
+                    <span style="color: rgba(255,255,255,0.9); display: block; font-size: 0.8rem;">
+                        {% if pub.autor.es_profesional %}
+                        {{ pub.autor.especialidad }}
+                        {% else %}
+                        Paciente
+                        {% endif %}
+                        • {{ pub.creado|timesince }}
+                    </span>
+                </div>
+            </a>
+        </div>
+
+        {% if pub.autor.es_profesional %}
+        <div class="post-tag">
+            <i class="fas fa-stethoscope"></i>
+            <span>{{ pub.autor.especialidad|default:"Medicina" }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="post-body">
+        {% if pub.imagen %}
+        <div class="post-thumbnail">
+            <img src="{{ pub.imagen.url }}" alt="Post Image" onclick="openMediaModal(this.src, 'image')"
+                style="cursor: zoom-in;">
+        </div>
+        {% elif pub.video %}
+        <div class="post-thumbnail" style="position: relative;">
+            <video src="{{ pub.video.url }}" controls controlsList="nodownload"
+                style="width:100%; height:100%; object-fit:cover;" class="prevent-select"></video>
+            <button onclick="openMediaModal('{{ pub.video.url }}', 'video')"
+                style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 5px; cursor: pointer; padding: 6px 10px; z-index: 10; font-size: 14px;"
+                title="Ampliar video">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+        {% endif %}
+
+        <div class="post-content-text">
+            {% if pub.contenido|length > 200 %}
+            <h3 class="post-title">{{ pub.contenido|truncatewords:8 }}</h3>
+            {% endif %}
+            <p class="post-excerpt">
+                {{ pub.contenido|linebreaksbr }}
+            </p>
+            <a href="{% url 'detalle_publicacion' pub.id %}" class="read-more">Ver publicación completa</a>
+        </div>
+    </div>
+
+    <div class="post-footer">
+        <a href="{% url 'detalle_publicacion' pub.id %}" class="reaction-btn" style="text-decoration: none;">
+            <i class="far fa-comment-alt"></i> {{ pub.comentarios.count }} Comentarios
+        </a>
+    </div>
+</div>

@@ -1,0 +1,339 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Herramientas IA{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<style>
+    .tools-container {
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 30px;
+        margin: 20px 0;
+        box-shadow: 0 10px 30px rgba(0, 188, 212, 0.1);
+        border: 1px solid rgba(0, 188, 212, 0.1);
+    }
+
+    .tools-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .tools-header i {
+        font-size: 4rem;
+        background: linear-gradient(135deg, #00bcd4 0%, #00796b 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+    }
+
+    .tools-header h1 {
+        color: #00796b;
+        margin-bottom: 10px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .tools-header p {
+        color: #555;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+
+    .tool-card {
+        background: white;
+        border: 1px solid #e0f7fa;
+        border-radius: 20px;
+        padding: 30px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    }
+
+    .tool-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #00bcd4 0%, #00796b 100%);
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+        transform-origin: left;
+    }
+
+    .tool-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .tool-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0, 188, 212, 0.15);
+        border-color: #b2ebf2;
+    }
+
+    .tool-icon {
+        font-size: 2.5rem;
+        color: #00bcd4;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, rgba(0, 188, 212, 0.1) 0%, rgba(0, 121, 107, 0.1) 100%);
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .tool-card:hover .tool-icon {
+        transform: scale(1.1) rotate(5deg);
+        color: #00796b;
+    }
+
+    .tool-title {
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin-bottom: 12px;
+        color: #333;
+        text-align: center;
+    }
+
+    .tool-desc {
+        color: #666;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .tool-status {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-top: 5px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .tool-status.available {
+        background: #e0f2f1;
+        color: #00695c;
+    }
+
+    .tool-status.coming-soon {
+        background: #fff8e1;
+        color: #f57f17;
+    }
+
+    .tool-action-btn {
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+        color: white;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 6px rgba(0, 188, 212, 0.2);
+    }
+
+    .tool-action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 188, 212, 0.3);
+        background: linear-gradient(135deg, #26c6da 0%, #00838f 100%);
+    }
+
+    .tool-action-btn:disabled {
+        background: #eeeeee;
+        color: #999;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    @media (max-width: 768px) {
+        .feed-content {
+            padding: 0 10px;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        .tools-container {
+            padding: 25px 15px;
+            margin: 10px 0;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .tools-header i {
+            font-size: 3rem;
+        }
+
+        .tools-header h1 {
+            font-size: 1.8rem;
+        }
+
+        .tools-header p {
+            font-size: 1rem;
+            padding: 0 10px;
+        }
+
+        .tools-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .tool-card {
+            padding: 20px;
+        }
+
+        .tool-title {
+            font-size: 1.2rem;
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 2rem;
+        }
+
+        /* Copiar reglas exactas de feed/search para botones flotantes */
+        .chat-floating-btn {
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            font-size: 1.3rem;
+        }
+
+        #bloodyFloatingBtn {
+            bottom: 90px !important;
+        }
+    }
+
+    /* RED THEME FOR ROJITO */
+    .tool-card.red-theme {
+        border-color: #ffebee;
+    }
+
+    .tool-card.red-theme::before {
+        background: linear-gradient(90deg, #d32f2f 0%, #b71c1c 100%);
+    }
+
+    .tool-card.red-theme:hover {
+        box-shadow: 0 15px 35px rgba(211, 47, 47, 0.15);
+        border-color: #ef9a9a;
+    }
+
+    .tool-card.red-theme .tool-icon {
+        color: #d32f2f;
+        background: linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(183, 28, 28, 0.1) 100%);
+    }
+
+    .tool-card.red-theme:hover .tool-icon {
+        color: #b71c1c;
+    }
+
+    .tool-card.red-theme .tool-action-btn {
+        background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+        box-shadow: 0 4px 6px rgba(211, 47, 47, 0.2);
+    }
+
+    .tool-card.red-theme .tool-action-btn:hover {
+        background: linear-gradient(135deg, #ef5350 0%, #b71c1c 100%);
+        box-shadow: 0 8px 15px rgba(211, 47, 47, 0.3);
+    }
+
+    .tool-card.red-theme .tool-status.available {
+        background: #ffebee;
+        color: #c62828;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="feed-content" style="flex: 3;">
+    <div class="tools-container">
+        <div class="tools-header">
+            <i class="fas fa-robot"></i>
+            <h1>Centro de Herramientas IA</h1>
+            <p>Potencia tu práctica médica con inteligencia artificial</p>
+        </div>
+        <div class="tools-grid">
+            <div class="tool-card active">
+                <div class="tool-icon">
+                    <i class="fas fa-comment-medical"></i>
+                </div>
+                <div class="tool-title">VITA - Chat Informativo</div>
+                <div class="tool-desc">
+                    Chatbot médico entrando con información avalada globalmente por la comunidad médico-cientifica.
+                    Responde preguntas generales sobre salud, síntomas, tratamientos y orientación general de salud.
+                </div>
+                <span class="tool-status available">✓ Disponible</span>
+                <button class="tool-action-btn" onclick="activateChat()">
+                    <i class="fas fa-comments"></i> Abrir Chat
+                </button>
+            </div>
+
+            <div class="tool-card red-theme">
+                <div class="tool-icon">
+                    <i class="fas fa-notes-medical"></i>
+                </div>
+                <div class="tool-title">Rojito - Analista Clínico de Exámenes de Sangre</div>
+                <div class="tool-desc">
+                    Extractor y comparador de datos medicos automáticos sobre bases teóricas y practicas.
+                </div>
+                <span class="tool-status available">✓ Disponible</span>
+                <button class="tool-action-btn" onclick="openBloodTest()">
+                    Iniciar Análisis
+                </button>
+            </div>
+
+            <div class="tool-card">
+                <div class="tool-icon">
+                    <i class="fas fa-file-medical-alt"></i>
+                </div>
+                <div class="tool-title">Generador de Tutelas</div>
+                <div class="tool-desc">
+                    Modulos para creación de tutelas orientadas.
+                </div>
+                <span class="tool-status coming-soon">⏳ Próximamente</span>
+                <button class="tool-action-btn" disabled>
+                    En Desarrollo
+                </button>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

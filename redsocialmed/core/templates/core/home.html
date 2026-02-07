@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Doctor App | Inicio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="{% static 'core/img/logo.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'core/css/home.css' %}?v=3">
+</head>
+
+<body>
+    <div class="container">
+        <img src="{% static 'core/img/fondo3.png' %}?v=2" alt="Fondo" class="background">
+
+        <div class="blur-box">
+            <div class="content">
+                <img src="{% static 'core/img/logo.ico' %}" alt="Logo DoctorApp" class="logo">
+                <h1 class="title">Doctor<br><span>App</span></h1>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <a href="{% url 'registro' %}" class="btn registro">Registro</a>
+            <a href="{% url 'login' %}" class="btn login">Login</a>
+        </div>
+    </div>
+</body>
+
+</html>

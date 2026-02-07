@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Búsqueda{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/profile_custom.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/busqueda.css' %}?v=11">
+{% endblock %}
+
+{% block content %}
+<main class="busqueda-container">
+  <div class="banner-busqueda">
+    <img src="{% static 'core/img/docsearch.png' %}" alt="Doctora" class="doctora-img">
+    <div class="buscador">
+      <h3>BÚSQUEDA MEDICA</h3>
+      <form method="get" action="{% url 'busqueda' %}">
+        <input type="text" name="q" placeholder="Especialidad, nombre, apellido, palabra clave..."
+          value="{{ request.GET.q }}">
+        <button type="submit"><i class="fas fa-search"></i></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="resultados" id="search-results-container">
+    {% if es_sugerencia %}
+    <div
+      style="background: #e2e3e5; color: #383d41; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #d6d8db; display: flex; align-items: center; gap: 10px;">
+      <i class="fas fa-user-md" style="font-size: 1.5rem; color: #555;"></i>
+      <div>
+        <strong>No encontramos resultados exactos.</strong><br>
+        Le sugerimos consultar con estos profesionales de <strong style="color: #00bcd4;">Medicina General</strong> que
+        pueden orientarle:
+      </div>
+    </div>
+    {% endif %}
+
+    {% if resultados %}
+    {% include 'core/includes/search_results.html' %}
+    {% else %}
+    <p class="sin-resultados">No se encontraron doctores con ese criterio.</p>
+    {% endif %}
+  </div>
+
+  <div id="loading-spinner" style="text-align: center; display: none; padding: 20px;">
+    <i class="fas fa-spinner fa-spin" style="font-size: 30px; color: var(--primary-color);"></i>
+  </div>
+
+  {% if resultados.has_next %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let page = 1;
+      let empty_page = false;
+      let block_request = false;
+      const container = document.getElementById('search-results-container');
+      const spinner = document.getElementById('loading-spinner');
+      const urlParams = new URLSearchParams(window.location.search);
+      const query = urlParams.get('q') || '';
+
+      window.onscroll = function () {
+        if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 600)) {
+          if (empty_page === false && block_request === false) {
+            block_request = true;
+            page += 1;
+
+            spinner.style.display = 'block';
+
+            fetch(`?q=${encodeURIComponent(query)}&page=${page}`, {
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            })
+              .then(response => {
+                if (response.ok) {
+                  return response.text();
+                }
+                throw new Error('Network response was not ok');
+              })
+              .then(html => {
+                if (html.trim() === '') {
+                  empty_page = true;
+                } else {
+                  container.insertAdjacentHTML('beforeend', html);
+                }
+                block_request = false;
+                spinner.style.display = 'none';
+              })
+              .catch(error => {
+                console.error('Error loading results:', error);
+                block_request = false;
+                spinner.style.display = 'none';
+                empty_page = true;
+              });
+          }
+        }
+      };
+    });
+  </script>
+  {% endif %}
+</main>
+{% endblock %}

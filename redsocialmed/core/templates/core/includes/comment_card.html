@@ -1,0 +1,51 @@
+{% load static %}
+<div class="comentario-item">
+    <div
+        style="width: 45px; height: 45px; border-radius: 50%; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        {% if comentario.autor.foto_perfil %}
+        <img src="{{ comentario.autor.foto_perfil.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% else %}
+        <img src="{% static 'core/img/user_default.png' %}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% endif %}
+    </div>
+
+    <div style="flex: 1;">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <div>
+                <span class="comentario-autor-nombre">
+                    {% if comentario.autor.es_profesional %}
+                    {% if comentario.autor.titulo_profesional %}
+                    {{ comentario.autor.titulo_profesional }}
+                    {% else %}
+                    Dr.
+                    {% endif %}
+                    {% endif %}
+
+                    {{ comentario.autor.get_full_name|default:comentario.autor.username }}
+
+                    {% if comentario.autor.es_profesional %}
+                    <i class="fas fa-check-circle"
+                        style="color: var(--primary-color); font-size: 0.8rem; margin-left: 3px;"
+                        title="Especialista Verificado"></i>
+                    {% endif %}
+                </span>
+                <span class="comentario-metadata">{{ comentario.creado|timesince }}</span>
+            </div>
+
+            {% if request.user == comentario.autor or request.user == publicacion.autor %}
+            <form method="post" action="{% url 'eliminar_comentario' com_id=comentario.id %}">
+                {% csrf_token %}
+                <button type="submit"
+                    style="color: #e57373; background: none; border: none; cursor: pointer; padding: 5px;"
+                    title="Eliminar comentario">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="comentario-contenido">
+            {{ comentario.contenido|linebreaksbr }}
+        </div>
+    </div>
+</div>

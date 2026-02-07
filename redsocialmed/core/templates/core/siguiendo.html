@@ -1,0 +1,174 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}DoctorApp | Siguiendo{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'core/css/feed.css' %}">
+<link rel="stylesheet" href="{% static 'core/css/profile_custom.css' %}">
+<style>
+    .siguiendo-container {
+        flex: 3;
+        margin: 0 auto;
+        padding: 20px;
+        max-width: 800px;
+    }
+
+    .header-section {
+        background: white;
+        padding: 20px 30px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .header-section h2 {
+        margin: 0;
+        color: var(--secondary-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .user-card {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s;
+    }
+
+    .user-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-decoration: none;
+        color: inherit;
+        flex: 1;
+    }
+
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid #eee;
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .user-details h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .specialty-badge {
+        font-size: 0.8rem;
+        color: var(--primary-color);
+        background: #e0f7fa;
+        padding: 2px 8px;
+        border-radius: 10px;
+        margin-top: 4px;
+        display: inline-block;
+    }
+
+    .btn-unfollow {
+        padding: 8px 16px;
+        border: 1px solid #ff5252;
+        color: #ff5252;
+        background: white;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-unfollow:hover {
+        background: #ff5252;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="siguiendo-container">
+    <div class="header-section">
+        <h2><i class="fas fa-user-friends"></i> Personas que sigues</h2>
+        <span
+            style="background: var(--primary-color); color: white; padding: 5px 12px; border-radius: 15px; font-weight: bold;">
+            {{ siguiendo.count }}
+        </span>
+    </div>
+
+    <div class="user-list">
+        {% for usuario in siguiendo %}
+        <div class="user-card">
+            <a href="{% url 'perfil' usuario.id %}" class="user-info">
+                <div class="user-avatar">
+                    {% if usuario.foto_perfil %}
+                    <img src="{{ usuario.foto_perfil.url }}" alt="Avatar">
+                    {% else %}
+                    <img src="{% static 'core/img/user_default.png' %}" alt="Avatar">
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h4>
+                        {% if usuario.es_profesional %}Dr. {% endif %}
+                        {{ usuario.first_name }} {{ usuario.last_name }}
+                    </h4>
+                    {% if usuario.es_profesional %}
+                    <span class="specialty-badge">{{ usuario.especialidad }}</span>
+                    {% else %}
+                    <span style="color: #999; font-size: 0.85rem;">Paciente</span>
+                    {% endif %}
+                </div>
+            </a>
+
+            <form method="post" action="{% url 'seguir_toggle' user_id=usuario.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-unfollow">
+                    <i class="fas fa-user-minus"></i> Dejar de seguir
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <i class="fas fa-user-plus" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+            <h3>No sigues a nadie aún</h3>
+            <p>Busca profesionales médicos para ver sus actualizaciones.</p>
+            <a href="{% url 'busqueda' %}"
+                style="color: var(--primary-color); font-weight: bold; text-decoration: none;">Ir a buscar</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

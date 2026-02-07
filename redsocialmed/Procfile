@@ -1,0 +1,1 @@
+web: gunicorn redsocialmed.wsgi --log-file -
