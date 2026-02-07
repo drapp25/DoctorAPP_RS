@@ -168,7 +168,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# Digital Ocean Spaces Configuration
+# Digital Ocean Spaces Configuration - FORCED
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
@@ -184,14 +184,16 @@ AWS_LOCATION = 'media'
 AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
 AWS_DEFAULT_ACL = 'public-read'
 
+# Force S3 storage to surface errors in logs
 if AWS_ACCESS_KEY_ID:
+    print(f"DEBUG: Initializing S3 Storage for bucket: {AWS_STORAGE_BUCKET_NAME}")
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     if AWS_S3_CUSTOM_DOMAIN:
         MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
     else:
-        # Default to the Spaces URL if no custom domain is provided
         MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.nyc3.digitaloceanspaces.com/'
 else:
+    print("DEBUG: AWS_ACCESS_KEY_ID not found, using local media storage")
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
