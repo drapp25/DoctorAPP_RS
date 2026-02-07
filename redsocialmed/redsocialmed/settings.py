@@ -29,9 +29,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-CHANGE-THIS-IN-PRODUCTION'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [h.strip().strip('"') for h in os.getenv('ALLOWED_HOSTS', '*').split(',')]
+ALLOWED_HOSTS = [h.strip().strip('"') for h in os.getenv('ALLOWED_HOSTS', 'doctorapp.com.co,www.doctorapp.com.co,*').split(',')]
 
-CSRF_TRUSTED_ORIGINS = [o.strip().strip('"') for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.ondigitalocean.app').split(',')]
+CSRF_TRUSTED_ORIGINS = [o.strip().strip('"') for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://doctorapp.com.co,https://*.doctorapp.com.co,https://*.ondigitalocean.app').split(',')]
 
 
 
