@@ -29,9 +29,9 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-CHANGE-THIS-IN-PRODUCTION'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [h.strip().strip('"') for h in os.getenv('ALLOWED_HOSTS', '*').split(',')]
 
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.ondigitalocean.app').split(',')
+CSRF_TRUSTED_ORIGINS = [o.strip().strip('"') for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.ondigitalocean.app').split(',')]
 
 
 
@@ -61,7 +61,14 @@ MIDDLEWARE = [
 ]
 
 # Optimize static files with WhiteNoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 ROOT_URLCONF = "redsocialmed.urls"
 
@@ -168,32 +175,33 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-# Digital Ocean Spaces Configuration - FORCED
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'https://nyc3.digitaloceanspaces.com')
+# Digital Ocean Spaces Configuration
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '').strip().strip('"')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '').strip().strip('"')
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME', '').strip().strip('"')
+AWS_S3_ENDPOINT_URL = os.getenv('AWS_S3_ENDPOINT_URL', 'https://nyc3.digitaloceanspaces.com').strip().strip('"')
 AWS_S3_REGION_NAME = 'nyc3'
 AWS_S3_SIGNATURE_VERSION = 's3v4'
 AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
     'ACL': 'public-read',
 }
-AWS_LOCATION = 'media'
-AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN')
-AWS_DEFAULT_ACL = 'public-read'
 
-# Force S3 storage to surface errors in logs
-if AWS_ACCESS_KEY_ID:
-    print(f"DEBUG: Initializing S3 Storage for bucket: {AWS_STORAGE_BUCKET_NAME}")
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    print(f"DEBUG: Configurando S3 para el bucket: {AWS_STORAGE_BUCKET_NAME}")
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+    }
+    AWS_S3_CUSTOM_DOMAIN = os.getenv('AWS_S3_CUSTOM_DOMAIN', '').strip().strip('"')
     if AWS_S3_CUSTOM_DOMAIN:
         MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
     else:
         MEDIA_URL = f'https://{AWS_STORAGE_BUCKET_NAME}.nyc3.digitaloceanspaces.com/'
 else:
-    print("DEBUG: AWS_ACCESS_KEY_ID not found, using local media storage")
+    print("DEBUG: AWS_ACCESS_KEY_ID no encontrada, usando disco local")
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 
