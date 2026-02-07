@@ -369,13 +369,12 @@ def editar_perfil_view(request):
         form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             if 'foto_perfil' in request.FILES:
-                try:
-                    old_user = User.objects.get(pk=request.user.pk)
-                    if old_user.foto_perfil:
-                        if os.path.isfile(old_user.foto_perfil.path):
-                            os.remove(old_user.foto_perfil.path)
-                except User.DoesNotExist:
-                    pass
+                # Remove old photo safely if it exists
+                if request.user.foto_perfil:
+                    try:
+                        request.user.foto_perfil.delete(save=False)
+                    except Exception:
+                        pass
 
             user = form.save(commit=False)
             
@@ -392,8 +391,7 @@ def editar_perfil_view(request):
             if form.cleaned_data.get('eliminar_foto') and not 'foto_perfil' in request.FILES:
                 if user.foto_perfil:
                     try:
-                        if os.path.isfile(user.foto_perfil.path):
-                            os.remove(user.foto_perfil.path)
+                        user.foto_perfil.delete(save=False)
                     except Exception:
                         pass
                     user.foto_perfil = None
